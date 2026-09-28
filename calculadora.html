@@ -171,9 +171,10 @@
   .venda input { color: var(--verde); border-bottom-color: var(--rosa); }
   .venda input:focus { border-bottom-color: var(--palco-texto2); }
   .venda input::placeholder { color: rgba(23,57,43,.3); }
-  .sugestao button { border-color: var(--rosa); color: var(--verde); background: rgba(255,255,255,.4); }
-  .sugestao button:hover { background: #FFFFFF; }
-  .sugestao button[aria-pressed="true"] { background: #FFFFFF; color: var(--verde); border-color: var(--palco-texto2); }
+  /* Mesmo padrão da seleção de caixa: selecionado branco com borda rosa, os outros sem fundo */
+  .sugestao button { border: 2px solid transparent; color: var(--palco-texto2); background: rgba(255,255,255,.5); }
+  .sugestao button:hover { background: rgba(255,255,255,.85); }
+  .sugestao button[aria-pressed="true"] { background: #FFFFFF; color: var(--verde); border-color: #FFB7C4; }
   .sugestao button[aria-pressed="true"] small { color: var(--palco-texto2); }
   .chip { background: #DDF0E3; color: #1F5A40; }
   .chip.perda { background: #FBD5CB; color: #8E2F1A; }
