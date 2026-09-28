@@ -10,7 +10,7 @@
   :root {
     color-scheme: light;
     --palco: #FFE8E2; --palco-texto: #17392B; --palco-texto2: #4A6458; --trilho: #F3D2C9;
-    --verde: #17392B; --verde-suave: rgba(255,255,255,.6); --rosa: #FFB0A2; --rosa-suave: #FFD3C9; --rosa-escuro: #D96B7E;
+    --verde: #17392B; --verde-suave: rgba(255,255,255,.6); --rosa: #FFB0A2; --rosa-suave: #FFD3C9; --rosa-escuro: #C0526A;
     --perda: #D4694F; --perda-texto: #A8402A; --foco: #4A6458;
     --chao: #FFFDFB; --tinta: #17392B; --tinta2: #5B6B63; --tinta3: #8B958F; --linha: #EAE0D6; --cartao: #FFFFFF;
     --ok-fundo: #E3F3E6; --ok-texto: #0F3B2C; --aviso-fundo: #FBE3DC; --aviso-texto: #A84226;
@@ -166,7 +166,7 @@
   /* Tons claros: rosa suave como base, verde só no texto */
   .segmentos { background: var(--verde-suave); }
   .segmentos button { color: var(--palco-texto2); }
-  .segmentos button[aria-pressed="true"] { background: #FFFFFF; color: var(--verde); box-shadow: inset 0 0 0 1.5px var(--rosa-escuro); }
+  .segmentos button[aria-pressed="true"] { background: #FFFFFF; color: var(--rosa-escuro); box-shadow: inset 0 0 0 1.5px var(--rosa-escuro); }
   .segmentos button[aria-pressed="false"]:hover { background: rgba(255,255,255,.7); }
   .venda input { color: var(--verde); border-bottom-color: var(--rosa); }
   .venda input:focus { border-bottom-color: var(--palco-texto2); }
