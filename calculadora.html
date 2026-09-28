@@ -64,8 +64,8 @@
   .venda input:focus { border-bottom-color: #FFFFFF; }
   .sugestao { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; font-size: 12px; font-weight: 600; color: var(--palco-texto2); }
   .sugestao-botoes { display: flex; gap: 8px; flex-wrap: wrap; }
-  .sugestao button { display: inline-flex; align-items: baseline; gap: 6px; height: 36px; padding: 0 12px; border: 1px solid rgba(255,255,255,.35); border-radius: 999px; background: transparent; color: #FFFFFF; font: 700 14px 'Figtree', system-ui, sans-serif; cursor: pointer; }
-  .sugestao button small { font-size: 11px; font-weight: 600; color: var(--palco-texto2); }
+  .sugestao button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 36px; line-height: 1; padding: 0 12px; border: 1px solid rgba(255,255,255,.35); border-radius: 999px; background: transparent; color: #FFFFFF; font: 700 14px 'Figtree', system-ui, sans-serif; cursor: pointer; }
+  .sugestao button small { font-size: 11px; line-height: 1; font-weight: 600; color: var(--palco-texto2); }
   .sugestao button:hover { background: rgba(255,255,255,.12); }
   .sugestao button[aria-pressed="true"] { background: #FFFFFF; color: #1E2AA0; border-color: #FFFFFF; }
   .sugestao button[aria-pressed="true"] small { color: #4B4F6E; }
@@ -278,21 +278,18 @@ const ICON_OK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stro
 const ICON_ALERTA = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M12 7v6"/><path d="M12 17h.01"/></svg>';
 
 let caixa = 300;
-let metaManual = false;   // false = margem automática (lucro igual ao custo de produção)
+let metaManual = false;
+let vendaManual = false;  // false = valor de venda preenchido com o preço sugerido (final ,90)   // false = margem automática (lucro igual ao custo de produção)
 try {
   const s = JSON.parse(localStorage.getItem('calc-fpm') || 'null');
-  if (s) { $('custo').value = s.custo ?? $('custo').value; $('venda').value = s.venda ?? $('venda').value; if (s.metaManual) { metaManual = true; $('meta').value = s.meta ?? ''; } caixa = s.caixa ?? caixa; }
+  if (s) { $('custo').value = s.custo ?? $('custo').value; $('venda').value = s.venda ?? $('venda').value; vendaManual = !!s.vendaManual; if (s.metaManual) { metaManual = true; $('meta').value = s.meta ?? ''; } caixa = s.caixa ?? caixa; }
 } catch (e) {}
 
 const vazioCampo = id => !$(id).value.trim();
 
 function calcular() {
-  const semCusto = vazioCampo('custo'), semVenda = vazioCampo('venda'), vazio = semCusto || semVenda;
-  const P = Math.round(num($('venda').value) * 100);
+  const semCusto = vazioCampo('custo');
   const C = Math.round(num($('custo').value) * 100);
-  const nuvem = r(P * TAXAS.nuvemshop), pgPct = r(P * TAXAS.pagarme), anuncio = r(P * TAXAS.anuncio), imposto = r(P * TAXAS.imposto), fixos = r(P * TAXAS.fixos);
-  const total = C + caixa + nuvem + pgPct + PAGARME_FIXA + anuncio + imposto + fixos;
-  const lucro = P - total, ok = lucro >= 0, margem = P > 0 ? lucro / P : 0;
   const base = C + caixa + PAGARME_FIXA;
   const precoPara = m => Math.ceil(base / (SOBRA - m) - 1e-7);
   const minimo = precoPara(0);
@@ -309,18 +306,29 @@ function calcular() {
   $('metaAuto').hidden = !metaManual;
   const metaTxt = pct(metaPct, metaManual ? 0 : 1);
 
+  // Preço sugerido terminado em ,90 que ainda atinge a margem ideal
+  let redondo = Math.floor(precoMeta / 100) * 100 + 90;
+  if (redondo < precoMeta) redondo += 100;
+
+  // Enquanto o usuário não definir o preço, o valor de venda segue o sugerido
+  if (!vendaManual && document.activeElement !== $('venda')) $('venda').value = semCusto ? '' : dec(redondo);
+
+  const semVenda = vazioCampo('venda'), vazio = semCusto || semVenda;
+  const P = Math.round(num($('venda').value) * 100);
+  const nuvem = r(P * TAXAS.nuvemshop), pgPct = r(P * TAXAS.pagarme), anuncio = r(P * TAXAS.anuncio), imposto = r(P * TAXAS.imposto), fixos = r(P * TAXAS.fixos);
+  const total = C + caixa + nuvem + pgPct + PAGARME_FIXA + anuncio + imposto + fixos;
+  const lucro = P - total, ok = lucro >= 0, margem = P > 0 ? lucro / P : 0;
+
   $('vazio').hidden = !vazio;
   $('cheio').hidden = vazio;
   $('cheio').style.display = vazio ? 'none' : 'contents';
   $('regua').classList.toggle('desligada', vazio);
   $('deslize').disabled = vazio;
   // Sugestão de preço pela margem ideal (exato e terminado em ,90)
-  let redondo = Math.floor(precoMeta / 100) * 100 + 90;
-  if (redondo < precoMeta) redondo += 100;
   const temSugestao = !semCusto && precoMeta > 0;
   $('sugestao').hidden = !temSugestao;
   if (temSugestao) {
-    $('sugestaoRot').textContent = `Sugerido para ${metaTxt} de margem ideal`;
+    $('sugestaoRot').textContent = vendaManual ? `Sugerido para ${metaTxt} de margem ideal` : `Preenchido com o sugerido para ${metaTxt} de margem ideal · edite se quiser`;
     $('sugExato').innerHTML = `${brl(precoMeta)} <small>exato</small>`;
     $('sugExato').dataset.p = precoMeta;
     $('sugExato').setAttribute('aria-pressed', String(P === precoMeta));
@@ -418,27 +426,28 @@ function calcular() {
 }
 
 function salvar() {
-  try { localStorage.setItem('calc-fpm', JSON.stringify({ custo: $('custo').value, venda: $('venda').value, meta: $('meta').value, metaManual, caixa })); } catch (e) {}
+  try { localStorage.setItem('calc-fpm', JSON.stringify({ custo: $('custo').value, venda: $('venda').value, meta: $('meta').value, metaManual, vendaManual, caixa })); } catch (e) {}
 }
 
 ['custo', 'venda'].forEach(id => {
-  $(id).addEventListener('input', calcular);
-  $(id).addEventListener('blur', () => { if (vazioCampo(id)) return; $(id).value = dec(Math.round(num($(id).value) * 100)); calcular(); });
+  $(id).addEventListener('input', () => { if (id === 'venda') vendaManual = !vazioCampo('venda'); calcular(); });
+  $(id).addEventListener('blur', () => { if (vazioCampo(id)) { calcular(); return; } $(id).value = dec(Math.round(num($(id).value) * 100)); calcular(); });
 });
 $('meta').addEventListener('input', () => { metaManual = $('meta').value.trim() !== ''; calcular(); });
 $('metaAuto').addEventListener('click', () => { metaManual = false; calcular(); });
 $('meta').addEventListener('blur', () => { if (!metaManual) { calcular(); return; } $('meta').value = Math.min(num($('meta').value), 45).toLocaleString('pt-BR', { maximumFractionDigits: 1 }); calcular(); });
-$('deslize').addEventListener('input', e => { $('venda').value = dec(Math.round(parseFloat(e.target.value) * 100)); calcular(); });
+$('deslize').addEventListener('input', e => { vendaManual = true; $('venda').value = dec(Math.round(parseFloat(e.target.value) * 100)); calcular(); });
 $('caixas').addEventListener('click', e => { const b = e.target.closest('button'); if (b) { caixa = +b.dataset.v; calcular(); } });
-$('usarMeta').addEventListener('click', e => { $('venda').value = dec(+e.currentTarget.dataset.p); calcular(); });
+$('usarMeta').addEventListener('click', e => { vendaManual = true; $('venda').value = dec(+e.currentTarget.dataset.p); calcular(); });
 $('exemplo').addEventListener('click', e => {
   const p = e.currentTarget.dataset.p;
-  if (p) { $('venda').value = dec(+p); }
-  else { $('custo').value = '25,00'; $('venda').value = '89,90'; caixa = 300; }
+  vendaManual = false;
+  if (!p) { $('custo').value = '25,00'; caixa = 300; }
   calcular();
 });
-['sugExato', 'sugRedondo'].forEach(id => $(id).addEventListener('click', e => { $('venda').value = dec(+e.currentTarget.dataset.p); calcular(); }));
-$('limpar').addEventListener('click', () => { $('custo').value = ''; $('venda').value = ''; calcular(); $('custo').focus(); });
+$('sugExato').addEventListener('click', e => { vendaManual = true; $('venda').value = dec(+e.currentTarget.dataset.p); calcular(); });
+$('sugRedondo').addEventListener('click', () => { vendaManual = false; calcular(); });
+$('limpar').addEventListener('click', () => { vendaManual = false; $('custo').value = ''; $('venda').value = ''; calcular(); $('custo').focus(); });
 calcular();
 </script>
 </body>
