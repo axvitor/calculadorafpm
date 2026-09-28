@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calculadora de Preço FPM</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+  :root {
+    color-scheme: light;
+    --palco: #2B3BCB; --palco-texto: #FFFFFF; --palco-texto2: #C8CEFF; --trilho: #7C88F0;
+    --perda: #FF9447; --perda-texto: #FFB27A; --foco: #FFD84A;
+    --chao: #F5F6FB; --tinta: #151733; --tinta2: #4B4F6E; --tinta3: #666A88; --linha: #DDE0EC; --cartao: #FFFFFF;
+    --ok-fundo: #E3F3E6; --ok-texto: #0B6B2C; --aviso-fundo: #FFE9D9; --aviso-texto: #9A3B00;
+    --s1: #2A78D6; --s2: #EB6834; --s3: #1BAF7A; --s4: #EDA100; --s5: #E87BA4; --s6: #008300;
+    --display: 'Bricolage Grotesque', 'Figtree', system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --palco: #1F2A9E; --trilho: #5563D6;
+      --chao: #12131F; --tinta: #F1F2FA; --tinta2: #C3C6DD; --tinta3: #9A9EBA; --linha: #2C2F45; --cartao: #1B1D2E;
+      --ok-fundo: #133A20; --ok-texto: #7FDB97; --aviso-fundo: #45260F; --aviso-texto: #FFB27A;
+      --s1: #3987E5; --s2: #D95926; --s3: #199E70; --s4: #C98500; --s5: #D55181; --s6: #0CA30C;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --palco: #1F2A9E; --trilho: #5563D6;
+    --chao: #12131F; --tinta: #F1F2FA; --tinta2: #C3C6DD; --tinta3: #9A9EBA; --linha: #2C2F45; --cartao: #1B1D2E;
+    --ok-fundo: #133A20; --ok-texto: #7FDB97; --aviso-fundo: #45260F; --aviso-texto: #FFB27A;
+    --s1: #3987E5; --s2: #D95926; --s3: #199E70; --s4: #C98500; --s5: #D55181; --s6: #0CA30C;
+  }
+
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body { margin: 0; background: var(--chao); color: var(--tinta); font-family: 'Figtree', system-ui, sans-serif; }
+  .envolve { max-width: 1200px; margin: 0 auto; padding-inline: clamp(16px, 4vw, 48px); }
+
+  /* Palco azul */
+  .palco { background: var(--palco); color: var(--palco-texto); padding-block: 36px 24px; }
+  .palco .envolve { display: flex; flex-direction: column; gap: 36px; }
+  .topo { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px 32px; flex-wrap: wrap; }
+  .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .16em; color: var(--palco-texto2); }
+  h1 { margin: 10px 0 0; font-family: var(--display); font-size: clamp(30px, 4vw, 42px); font-weight: 700; letter-spacing: -.02em; line-height: 1.05; text-wrap: balance; }
+  .entradas { display: flex; align-items: flex-end; gap: 16px 20px; flex-wrap: wrap; }
+  .grupo { display: flex; flex-direction: column; gap: 8px; }
+  .grupo > label, .grupo > .rot { font-size: 13px; font-weight: 600; color: var(--palco-texto2); }
+  .campo { display: flex; align-items: center; gap: 8px; width: 168px; height: 52px; padding: 0 14px; border-radius: 12px; background: #FFFFFF; color: #151733; }
+  .campo:focus-within { box-shadow: 0 0 0 3px var(--foco); }
+  .campo span { font-size: 15px; font-weight: 600; color: #4B4F6E; }
+  .campo input { flex: 1; min-width: 0; width: 100%; border: 0; padding: 0; background: transparent; font: 700 19px 'Figtree', system-ui, sans-serif; color: #151733; outline: none; }
+  .campo.pequeno { width: 118px; }
+  .segmentos { display: flex; gap: 4px; padding: 4px; border-radius: 14px; background: rgba(255,255,255,.14); }
+  .segmentos button { height: 44px; min-width: 78px; padding: 0 10px; border: 0; border-radius: 10px; background: transparent; color: #FFFFFF; font: 700 15px 'Figtree', system-ui, sans-serif; cursor: pointer; }
+  .segmentos button[aria-pressed="true"] { background: #FFFFFF; color: #1E2AA0; }
+  .segmentos button[aria-pressed="false"]:hover { background: rgba(255,255,255,.16); }
+  button:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
+
+  .numeros { display: flex; align-items: flex-end; gap: 28px 56px; flex-wrap: wrap; }
+  .venda { display: flex; align-items: baseline; gap: 10px; }
+  .venda span { font-family: var(--display); font-size: 30px; font-weight: 600; color: var(--palco-texto2); }
+  .venda input { width: 240px; max-width: 60vw; border: 0; border-bottom: 2px solid rgba(255,255,255,.45); padding: 0 0 4px; background: transparent; font-family: var(--display); font-size: 60px; font-weight: 700; letter-spacing: -.02em; color: #FFFFFF; outline: none; }
+  .venda input:focus { border-bottom-color: #FFFFFF; }
+  .rotulo-linha { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .chip { display: inline-flex; align-items: center; gap: 5px; height: 24px; padding: 0 10px; border-radius: 999px; font-size: 12px; font-weight: 700; background: rgba(255,255,255,.16); color: #FFFFFF; }
+  .chip.perda { background: var(--perda); color: #151733; }
+  .chip svg { width: 13px; height: 13px; }
+  .grande { font-family: var(--display); font-size: clamp(56px, 8vw, 88px); font-weight: 700; letter-spacing: -.03em; line-height: .95; }
+  .grande.perda { color: var(--perda-texto); }
+  .medio { font-family: var(--display); font-size: 44px; font-weight: 700; letter-spacing: -.02em; line-height: 1; }
+
+  .regua-topo { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; font-weight: 600; color: var(--palco-texto2); }
+  .regua { position: relative; height: 100px; }
+  .trilho { position: absolute; left: 0; right: 0; top: 20px; height: 10px; border-radius: 5px; background: var(--trilho); }
+  .zona-perda { position: absolute; left: 0; top: 20px; height: 10px; border-radius: 5px 0 0 5px; background: var(--perda); }
+  .marca { position: absolute; top: 36px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 3px; white-space: nowrap; }
+  .marca i { width: 2px; height: 10px; border-radius: 1px; background: #FFFFFF; }
+  .marca.minimo i { background: var(--perda); }
+  .marca.meta i { width: 4px; background: var(--foco); }
+  .marca b { font-size: 13px; }
+  .marca small { font-size: 12px; color: var(--palco-texto2); }
+  .marca.meta small { color: var(--foco); font-weight: 700; }
+  .deslize { position: absolute; left: 0; top: 0; width: 100%; height: 50px; margin: 0; background: transparent; -webkit-appearance: none; appearance: none; cursor: pointer; }
+  .deslize::-webkit-slider-runnable-track { height: 50px; background: transparent; }
+  .deslize::-webkit-slider-thumb { -webkit-appearance: none; width: 30px; height: 30px; margin-top: 10px; border: 0; border-radius: 50%; background: #FFFFFF; box-shadow: 0 0 0 6px rgba(255,255,255,.25), 0 6px 14px rgba(8,14,70,.45); }
+  .deslize::-moz-range-track { height: 50px; background: transparent; }
+  .deslize::-moz-range-thumb { width: 30px; height: 30px; border: 0; border-radius: 50%; background: #FFFFFF; box-shadow: 0 0 0 6px rgba(255,255,255,.25), 0 6px 14px rgba(8,14,70,.45); }
+  .deslize:focus { outline: none; }
+  .deslize:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 6px var(--foco); }
+  .deslize:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 6px var(--foco); }
+
+  /* Parte clara */
+  .baixo { padding-block: 32px 48px; }
+  .baixo .envolve { display: flex; flex-direction: column; gap: 28px; }
+  .meta-cartao { display: flex; align-items: center; justify-content: space-between; gap: 16px 24px; flex-wrap: wrap; padding: 18px 22px; border: 1px solid var(--linha); border-radius: 14px; background: var(--cartao); }
+  .meta-cartao .texto { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .meta-cartao h2 { margin: 0; font-family: var(--display); font-size: 20px; font-weight: 700; }
+  .meta-cartao p { margin: 0; font-size: 14px; line-height: 1.45; color: var(--tinta2); max-width: 62ch; }
+  .estado { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; font-size: 13px; font-weight: 700; background: var(--ok-fundo); color: var(--ok-texto); }
+  .estado.abaixo { background: var(--aviso-fundo); color: var(--aviso-texto); }
+  .usar { height: 48px; padding: 0 20px; border: 0; border-radius: 12px; background: var(--palco); color: #FFFFFF; font: 700 15px 'Figtree', system-ui, sans-serif; cursor: pointer; }
+  .usar:hover { filter: brightness(1.1); }
+  .usar:focus-visible { outline-color: var(--palco); }
+  .meta-acoes { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+  .cab { display: flex; align-items: baseline; justify-content: space-between; gap: 8px 16px; flex-wrap: wrap; }
+  .cab h2 { margin: 0; font-family: var(--display); font-size: 22px; font-weight: 700; letter-spacing: -.01em; }
+  .cab span { font-size: 13px; color: var(--tinta3); }
+  .barra-wrap { position: relative; }
+  .barra { display: flex; gap: 2px; height: 40px; }
+  .barra div { min-width: 2px; }
+  .excesso { position: absolute; top: -6px; bottom: -6px; right: 0; border-left: 2px solid var(--tinta); background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--tinta) 55%, transparent) 0 3px, transparent 3px 9px); }
+  .legenda { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 20px; }
+  .legenda > div { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .legenda .nome { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; }
+  .legenda .nome i { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+  .legenda .valor { font-family: var(--display); font-size: 24px; font-weight: 700; }
+  .legenda .pct { font-size: 13px; font-weight: 600; color: var(--tinta2); font-variant-numeric: tabular-nums; }
+  .legenda .det { font-size: 12px; line-height: 1.4; color: var(--tinta3); }
+
+  .venda input::placeholder { color: rgba(255,255,255,.4); }
+  .campo input::placeholder { color: #9A9EBA; }
+  .vazio { display: grid; grid-template-columns: auto 1fr; gap: 20px 28px; align-items: start; padding: 32px; border: 1.5px dashed var(--linha); border-radius: 16px; background: var(--cartao); }
+  .vazio .icone { width: 56px; height: 56px; border-radius: 14px; display: grid; place-items: center; background: color-mix(in srgb, var(--palco) 12%, transparent); color: var(--palco); }
+  :root[data-theme="dark"] .vazio .icone { color: var(--palco-texto2); }
+  .vazio h2 { margin: 0 0 6px; font-family: var(--display); font-size: 24px; font-weight: 700; text-wrap: balance; }
+  .vazio p { margin: 0; font-size: 15px; line-height: 1.5; color: var(--tinta2); max-width: 60ch; }
+  .passos { margin: 18px 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; counter-reset: passo; }
+  .passos li { counter-increment: passo; display: flex; gap: 10px; align-items: flex-start; padding: 14px; border-radius: 12px; background: var(--chao); font-size: 14px; line-height: 1.4; color: var(--tinta2); }
+  .passos li::before { content: counter(passo); flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: var(--palco); color: #fff; font-size: 13px; font-weight: 700; }
+  .passos b { color: var(--tinta); }
+  .vazio .acoes { margin-top: 20px; display: flex; gap: 12px; flex-wrap: wrap; }
+  .secundario { height: 40px; padding: 0 14px; border: 1px solid var(--linha); border-radius: 10px; background: transparent; color: var(--tinta2); font: 600 14px 'Figtree', system-ui, sans-serif; cursor: pointer; }
+  .secundario:hover { color: var(--tinta); border-color: var(--tinta3); }
+  .secundario:focus-visible { outline-color: var(--palco); }
+  .regua.desligada { opacity: .45; pointer-events: none; }
+  @media (max-width: 700px) { .vazio { grid-template-columns: 1fr; padding: 24px; } .passos { grid-template-columns: 1fr; } }
+  @media (max-width: 900px) { .legenda { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  @media (max-width: 560px) {
+    .legenda { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .campo { width: 100%; } .entradas, .grupo { width: 100%; }
+    .segmentos button { flex: 1; min-width: 0; }
+    .regua-topo span:nth-child(2) { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<section class="palco">
+  <div class="envolve">
+    <div class="topo">
+      <div>
+        <div class="eyebrow">SIMULADOR DE PREÇO · NUVEMSHOP + PAGAR.ME</div>
+        <h1>Quanto cobrar por este produto?</h1>
+      </div>
+      <div class="entradas">
+        <div class="grupo">
+          <label for="custo">Custo de produção</label>
+          <div class="campo"><span>R$</span><input id="custo" inputmode="decimal" autocomplete="off" placeholder="0,00"></div>
+        </div>
+        <div class="grupo">
+          <span class="rot" id="rotCaixa">Caixa</span>
+          <div class="segmentos" id="caixas" role="group" aria-labelledby="rotCaixa">
+            <button type="button" data-v="150" aria-pressed="false">R$ 1,50</button>
+            <button type="button" data-v="300" aria-pressed="true">R$ 3,00</button>
+            <button type="button" data-v="900" aria-pressed="false">R$ 9,00</button>
+          </div>
+        </div>
+        <div class="grupo">
+          <label for="meta">Margem ideal</label>
+          <div class="campo pequeno"><input id="meta" inputmode="decimal" autocomplete="off" value="15" style="text-align:right"><span>%</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="numeros">
+      <div class="grupo">
+        <label for="venda">Valor de venda</label>
+        <div class="venda"><span>R$</span><input id="venda" inputmode="decimal" autocomplete="off" placeholder="0,00"></div>
+      </div>
+      <div class="grupo" aria-live="polite">
+        <div class="rotulo-linha"><span class="rot" style="font-size:13px;font-weight:600;color:var(--palco-texto2)">Lucro por venda</span><span class="chip" id="chip"></span></div>
+        <span class="grande" id="lucro"></span>
+      </div>
+      <div class="grupo">
+        <span class="rot" style="font-size:13px;font-weight:600;color:var(--palco-texto2)">Margem</span>
+        <span class="medio" id="margem"></span>
+      </div>
+    </div>
+
+    <div>
+      <div class="regua-topo"><span id="sMin"></span><span>Arraste para testar outros preços</span><span id="sMax"></span></div>
+      <div class="regua" id="regua">
+        <div class="trilho"></div>
+        <div class="zona-perda" id="zonaPerda"></div>
+        <div id="marcas"></div>
+        <input id="deslize" class="deslize" type="range" step="0.1" aria-label="Valor de venda">
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="baixo">
+  <div class="envolve">
+    <div class="vazio" id="vazio" hidden>
+      <div class="icone" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg></div>
+      <div>
+        <h2 id="vazioTitulo">Comece pelo custo do produto</h2>
+        <p id="vazioTexto">Preencha os campos no topo para ver quanto sobra de cada venda depois das taxas da Nuvemshop e da Pagar.me, do anúncio, do imposto e dos custos fixos.</p>
+        <ol class="passos">
+          <li><span><b>Custo de produção</b> e o tamanho da <b>caixa</b></span></li>
+          <li><span>A <b>margem ideal</b> para o seu negócio (15% já vem sugerido)</span></li>
+          <li><span>O <b>valor de venda</b>, ou use o preço recomendado</span></li>
+        </ol>
+        <div class="acoes">
+          <button type="button" class="usar" id="exemplo">Ver um exemplo</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="cheio" style="display:contents">
+    <div class="meta-cartao" id="metaCartao">
+      <div class="texto">
+        <h2 id="metaTitulo"></h2>
+        <p id="metaTexto"></p>
+      </div>
+      <div class="meta-acoes">
+        <span class="estado" id="estado"></span>
+        <button type="button" class="usar" id="usarMeta"></button>
+      </div>
+    </div>
+
+    <div class="cab">
+      <h2 id="tituloBarra"></h2>
+      <span>Taxas, anúncio, imposto e custos fixos somam 54,92% do preço + R$ 0,20</span>
+    </div>
+    <div class="barra-wrap">
+      <div class="barra" id="barra"></div>
+      <div class="excesso" id="excesso" hidden></div>
+    </div>
+    <div class="legenda" id="legenda"></div>
+    <div><button type="button" class="secundario" id="limpar">Limpar valores</button></div>
+    </div>
+  </div>
+</section>
+
+<script>
+// Percentuais sobre o valor de venda
+const TAXAS = { nuvemshop: 0.02, pagarme: 0.0428, anuncio: 0.20, imposto: 0.0864, fixos: 0.20 };
+const PAGARME_FIXA = 20;          // centavos
+const SOBRA = 1 - 0.5492;         // parte do preço que sobra após os percentuais (45,08%)
+
+const $ = id => document.getElementById(id);
+const num = s => { let t = String(s || '').replace(/[^\d,.]/g, ''); if (t.includes(',')) t = t.replace(/\./g, '').replace(',', '.'); const n = parseFloat(t); return isFinite(n) ? n : 0; };
+const dec = c => (Math.abs(c) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const brl = c => (c < 0 ? '−' : '') + 'R$ ' + dec(c);
+const pct = (x, d = 1) => (x * 100).toLocaleString('pt-BR', { minimumFractionDigits: d, maximumFractionDigits: d }) + '%';
+const r = x => Math.round(x + 1e-9);
+const ICON_OK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+const ICON_ALERTA = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M12 7v6"/><path d="M12 17h.01"/></svg>';
+
+let caixa = 300;
+try {
+  const s = JSON.parse(localStorage.getItem('calc-fpm') || 'null');
+  if (s) { $('custo').value = s.custo ?? $('custo').value; $('venda').value = s.venda ?? $('venda').value; $('meta').value = s.meta ?? $('meta').value; caixa = s.caixa ?? caixa; }
+} catch (e) {}
+
+const vazioCampo = id => !$(id).value.trim();
+
+function calcular() {
+  const semCusto = vazioCampo('custo'), semVenda = vazioCampo('venda'), vazio = semCusto || semVenda;
+  const P = Math.round(num($('venda').value) * 100);
+  const C = Math.round(num($('custo').value) * 100);
+  const metaPct = Math.min(num($('meta').value), 45) / 100;   // acima de 45,08% é impossível
+  const nuvem = r(P * TAXAS.nuvemshop), pgPct = r(P * TAXAS.pagarme), anuncio = r(P * TAXAS.anuncio), imposto = r(P * TAXAS.imposto), fixos = r(P * TAXAS.fixos);
+  const total = C + caixa + nuvem + pgPct + PAGARME_FIXA + anuncio + imposto + fixos;
+  const lucro = P - total, ok = lucro >= 0, margem = P > 0 ? lucro / P : 0;
+  const base = C + caixa + PAGARME_FIXA;
+  const precoPara = m => Math.ceil(base / (SOBRA - m) - 1e-7);
+  const minimo = precoPara(0), precoMeta = precoPara(metaPct);
+
+  $('vazio').hidden = !vazio;
+  $('cheio').hidden = vazio;
+  $('cheio').style.display = vazio ? 'none' : 'contents';
+  $('regua').classList.toggle('desligada', vazio);
+  $('deslize').disabled = vazio;
+  if (vazio) {
+    $('lucro').textContent = 'R$ —';
+    $('lucro').classList.remove('perda');
+    $('chip').hidden = true;
+    $('margem').textContent = '—';
+    $('zonaPerda').style.width = '0px';
+    $('marcas').innerHTML = '';
+    $('sMin').textContent = ''; $('sMax').textContent = '';
+    if (!semCusto) {
+      $('vazioTitulo').textContent = `Agora o valor de venda. Para ${pct(metaPct, 0)} de margem, cobre ${brl(precoMeta)}`;
+      $('vazioTexto').textContent = `Com esse custo e essa caixa, o preço mínimo sem prejuízo é ${brl(minimo)}. Digite o seu preço no campo "Valor de venda" ou use o recomendado.`;
+      $('exemplo').textContent = 'Usar ' + brl(precoMeta);
+      $('exemplo').dataset.p = precoMeta;
+    } else {
+      $('vazioTitulo').textContent = 'Comece pelo custo do produto';
+      $('vazioTexto').textContent = 'Preencha os campos no topo para ver quanto sobra de cada venda depois das taxas da Nuvemshop e da Pagar.me, do anúncio, do imposto e dos custos fixos.';
+      $('exemplo').textContent = 'Ver um exemplo';
+      delete $('exemplo').dataset.p;
+    }
+    document.querySelectorAll('#caixas button').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.v === caixa)));
+    salvar();
+    return;
+  }
+  $('chip').hidden = false;
+
+  // Números principais
+  $('lucro').textContent = brl(lucro);
+  $('lucro').classList.toggle('perda', !ok);
+  $('chip').className = 'chip' + (ok ? '' : ' perda');
+  $('chip').innerHTML = (ok ? ICON_OK : ICON_ALERTA) + '<span>' + (ok ? 'Lucro' : 'Prejuízo') + '</span>';
+  $('margem').textContent = P > 0 ? pct(margem) : '—';
+
+  // Régua
+  const Pr = P / 100;
+  let sMin = Math.min(Math.floor(base / 100 / 5) * 5, Math.floor(Pr / 5) * 5);
+  let sMax = Math.max(Math.ceil(precoPara(0.30) / 100 / 10) * 10, Math.ceil(Pr / 10) * 10);
+  if (sMax - sMin < 10) sMax = sMin + 10;
+  const fr = reais => (reais - sMin) / (sMax - sMin);
+  const pos = f => `calc(15px + (100% - 30px) * ${Math.max(0, Math.min(1, f)).toFixed(4)})`;
+  const d = $('deslize');
+  d.min = sMin; d.max = sMax; d.value = Pr;
+  $('sMin').textContent = 'R$ ' + sMin; $('sMax').textContent = 'R$ ' + sMax;
+  const fMin = fr(minimo / 100);
+  $('zonaPerda').style.width = fMin <= 0 ? '0px' : pos(fMin);
+  const marcas = [{ c: minimo, rot: 'preço mínimo', cls: 'minimo' }, { c: precoMeta, rot: 'sua meta · ' + pct(metaPct, 0), cls: 'meta' }]
+    .filter(m => { const f = fr(m.c / 100); return f >= 0 && f <= 1; });
+  $('marcas').innerHTML = marcas.map(m => `<div class="marca ${m.cls}" style="left:${pos(fr(m.c / 100))}"><i></i><b>${brl(m.c)}</b><small>${m.rot}</small></div>`).join('');
+
+  // Margem ideal
+  const atingiu = P > 0 && margem >= metaPct - 1e-9;
+  $('metaTitulo').textContent = `Preço recomendado para ${pct(metaPct, 0)} de margem: ${brl(precoMeta)}`;
+  $('metaTexto').textContent = P <= 0 ? 'Informe o valor de venda para comparar com a sua meta.'
+    : atingiu ? `Seu preço atual passa da meta em ${brl(P - precoMeta)}. Cada venda deixa ${brl(lucro)} de lucro.`
+    : `Faltam ${brl(precoMeta - P)} no preço para chegar à meta. No preço recomendado, o lucro por venda seria de ${brl(Math.round(precoMeta * metaPct))} aproximadamente.`;
+  $('estado').className = 'estado' + (atingiu ? '' : ' abaixo');
+  $('estado').innerHTML = (atingiu ? ICON_OK : ICON_ALERTA).replace('<svg', '<svg width="14" height="14"') + (atingiu ? 'Dentro da meta' : 'Abaixo da meta');
+  $('usarMeta').textContent = 'Usar ' + brl(precoMeta);
+  $('usarMeta').dataset.p = precoMeta;
+  $('usarMeta').hidden = precoMeta === P;
+
+  // Composição do preço
+  $('tituloBarra').textContent = 'Para onde vai cada venda de ' + brl(P);
+  const partes = [
+    { nome: 'Produto e caixa', v: C + caixa, cor: 'var(--s1)', det: `Produto ${brl(C)} + caixa ${brl(caixa)}` },
+    { nome: 'Taxas de venda', v: nuvem + pgPct + PAGARME_FIXA, cor: 'var(--s2)', det: `Nuvemshop ${dec(nuvem)} · Pagar.me ${dec(pgPct)} + ${dec(PAGARME_FIXA)}` },
+    { nome: 'Anúncio', v: anuncio, cor: 'var(--s3)', det: '20% do valor de venda' },
+    { nome: 'Imposto', v: imposto, cor: 'var(--s4)', det: '8,64% do valor de venda' },
+    { nome: 'Custos fixos', v: fixos, cor: 'var(--s5)', det: '20% do valor de venda' }
+  ];
+  const segs = partes.concat(ok && lucro > 0 ? [{ nome: 'Lucro', v: lucro, cor: 'var(--s6)' }] : []).filter(s => s.v > 0);
+  $('barra').innerHTML = segs.map((s, i) => {
+    const a = i === 0 ? '4px' : '0', b = i === segs.length - 1 ? '4px' : '0';
+    return `<div title="${s.nome}: ${brl(s.v)}" style="flex:${s.v} 1 0px;background:${s.cor};border-radius:${a} ${b} ${b} ${a}"></div>`;
+  }).join('');
+  $('excesso').hidden = ok;
+  if (!ok) $('excesso').style.left = (total > 0 ? Math.min(100, P / total * 100) : 0).toFixed(2) + '%';
+  const pctP = v => P > 0 ? pct(v / P) + ' do preço' : '—';
+  const hachura = 'repeating-linear-gradient(135deg, var(--tinta) 0 2px, transparent 2px 5px)';
+  $('legenda').innerHTML = partes.map(s => ({ ...s, pctTxt: pctP(s.v), valor: brl(s.v) }))
+    .concat([ok ? { nome: 'Lucro', cor: 'var(--s6)', valor: brl(lucro), pctTxt: pctP(lucro), det: 'O que sobra para você em cada venda' }
+                : { nome: 'Prejuízo', cor: hachura, valor: brl(lucro), pctTxt: pctP(lucro), det: 'Os custos passam do valor de venda' }])
+    .map(s => `<div><span class="nome"><i style="background:${s.cor}"></i>${s.nome}</span><span class="valor">${s.valor}</span><span class="pct">${s.pctTxt}</span><span class="det">${s.det}</span></div>`).join('');
+
+  document.querySelectorAll('#caixas button').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.v === caixa)));
+  salvar();
+}
+
+function salvar() {
+  try { localStorage.setItem('calc-fpm', JSON.stringify({ custo: $('custo').value, venda: $('venda').value, meta: $('meta').value, caixa })); } catch (e) {}
+}
+
+['custo', 'venda'].forEach(id => {
+  $(id).addEventListener('input', calcular);
+  $(id).addEventListener('blur', () => { if (vazioCampo(id)) return; $(id).value = dec(Math.round(num($(id).value) * 100)); calcular(); });
+});
+$('meta').addEventListener('input', calcular);
+$('meta').addEventListener('blur', () => { $('meta').value = Math.min(num($('meta').value), 45).toLocaleString('pt-BR', { maximumFractionDigits: 1 }); calcular(); });
+$('deslize').addEventListener('input', e => { $('venda').value = dec(Math.round(parseFloat(e.target.value) * 100)); calcular(); });
+$('caixas').addEventListener('click', e => { const b = e.target.closest('button'); if (b) { caixa = +b.dataset.v; calcular(); } });
+$('usarMeta').addEventListener('click', e => { $('venda').value = dec(+e.currentTarget.dataset.p); calcular(); });
+$('exemplo').addEventListener('click', e => {
+  const p = e.currentTarget.dataset.p;
+  if (p) { $('venda').value = dec(+p); }
+  else { $('custo').value = '25,00'; $('venda').value = '89,90'; caixa = 300; }
+  calcular();
+});
+$('limpar').addEventListener('click', () => { $('custo').value = ''; $('venda').value = ''; calcular(); $('custo').focus(); });
+calcular();
+</script>
+</body>
+</html>
