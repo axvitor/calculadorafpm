@@ -279,7 +279,7 @@ const ICON_ALERTA = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" 
 
 let caixa = 300;
 let metaManual = false;
-let vendaManual = false;  // false = valor de venda preenchido com o preço sugerido (final ,90)   // false = margem automática (lucro igual ao custo de produção)
+let vendaManual = false;  // false = valor de venda preenchido com o preço sugerido exato   // false = margem automática (lucro igual ao custo de produção)
 try {
   const s = JSON.parse(localStorage.getItem('calc-fpm') || 'null');
   if (s) { $('custo').value = s.custo ?? $('custo').value; $('venda').value = s.venda ?? $('venda').value; vendaManual = !!s.vendaManual; if (s.metaManual) { metaManual = true; $('meta').value = s.meta ?? ''; } caixa = s.caixa ?? caixa; }
@@ -311,7 +311,7 @@ function calcular() {
   if (redondo < precoMeta) redondo += 100;
 
   // Enquanto o usuário não definir o preço, o valor de venda segue o sugerido
-  if (!vendaManual && document.activeElement !== $('venda')) $('venda').value = semCusto ? '' : dec(redondo);
+  if (!vendaManual && document.activeElement !== $('venda')) $('venda').value = semCusto ? '' : dec(precoMeta);
 
   const semVenda = vazioCampo('venda'), vazio = semCusto || semVenda;
   const P = Math.round(num($('venda').value) * 100);
@@ -445,8 +445,8 @@ $('exemplo').addEventListener('click', e => {
   if (!p) { $('custo').value = '25,00'; caixa = 300; }
   calcular();
 });
-$('sugExato').addEventListener('click', e => { vendaManual = true; $('venda').value = dec(+e.currentTarget.dataset.p); calcular(); });
-$('sugRedondo').addEventListener('click', () => { vendaManual = false; calcular(); });
+$('sugExato').addEventListener('click', () => { vendaManual = false; calcular(); });
+$('sugRedondo').addEventListener('click', e => { vendaManual = true; $('venda').value = dec(+e.currentTarget.dataset.p); calcular(); });
 $('limpar').addEventListener('click', () => { vendaManual = false; $('custo').value = ''; $('venda').value = ''; calcular(); $('custo').focus(); });
 calcular();
 </script>
