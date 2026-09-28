@@ -51,7 +51,7 @@
   .campo:focus-within { box-shadow: 0 0 0 3px var(--foco); }
   .campo span { font-size: 15px; font-weight: 600; color: #4B4F6E; }
   .campo input { flex: 1; min-width: 0; width: 100%; border: 0; padding: 0; background: transparent; font: 700 19px 'Figtree', system-ui, sans-serif; color: #151733; outline: none; }
-  .campo.pequeno { width: 118px; }
+  .campo.pequeno { width: 92px; padding: 0 12px; }
   .segmentos { display: flex; gap: 4px; padding: 4px; border-radius: 14px; background: rgba(255,255,255,.14); }
   .segmentos button { height: 44px; min-width: 78px; padding: 0 10px; border: 0; border-radius: 10px; background: transparent; color: #FFFFFF; font: 700 15px 'Figtree', system-ui, sans-serif; cursor: pointer; }
   .segmentos button[aria-pressed="true"] { background: #FFFFFF; color: #1E2AA0; }
@@ -191,7 +191,7 @@
         </div>
         <div class="grupo">
           <label for="meta">Margem ideal</label>
-          <div class="campo pequeno"><input id="meta" inputmode="decimal" autocomplete="off" style="text-align:right" aria-describedby="metaModo"><span>%</span></div>
+          <div class="campo pequeno"><input id="meta" inputmode="decimal" autocomplete="off" maxlength="4" style="text-align:right" aria-describedby="metaModo"><span>%</span></div>
           <div class="meta-modo"><span id="metaModo"></span><button type="button" id="metaAuto" hidden>automática</button></div>
         </div>
       </div>
