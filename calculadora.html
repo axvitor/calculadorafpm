@@ -212,6 +212,9 @@
   .termo .venda span { font-size: 22px; }
   .termo .venda input { width: 100%; max-width: 220px; font-size: clamp(32px, 3.6vw, 44px); font-weight: 800; }
   .termo .grande { white-space: nowrap; font-size: clamp(32px, 4vw, 52px); font-weight: 900; line-height: 1.05; }
+  .termo:not(.termo-venda) { align-items: center; justify-content: center; text-align: center; }
+  .termo:not(.termo-venda) .rotulo-linha { justify-content: center; }
+  .termo:not(.termo-venda) .margem-pill { align-self: center; }
   .margem-pill { align-self: flex-start; display: inline-flex; align-items: center; height: 30px; padding: 0 12px; border-radius: 999px; background: #FFFFFF; font-size: 14px; font-weight: 800; }
   @media (max-width: 1000px) {
     .equacao { flex-direction: column; gap: 6px; padding: 16px; }
