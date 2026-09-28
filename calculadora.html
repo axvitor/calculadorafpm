@@ -140,6 +140,12 @@
   .passos li::before { content: counter(passo); flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: var(--palco); color: #fff; font-size: 13px; font-weight: 700; }
   .passos b { color: var(--tinta); }
   .vazio .acoes { margin-top: 20px; display: flex; gap: 12px; flex-wrap: wrap; }
+  .topo > div:first-child { flex: 1 1 auto; min-width: 0; }
+  .cabeca { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .palco .envolve { position: relative; }
+  .limpar { position: absolute; top: 0; right: clamp(16px, 4vw, 48px); display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px; border: 1px solid rgba(255,255,255,.35); border-radius: 999px; background: transparent; color: #FFFFFF; font: 600 13px 'Figtree', system-ui, sans-serif; line-height: 1; cursor: pointer; }
+  .limpar:hover { background: rgba(255,255,255,.12); }
+  @media (max-width: 560px) { .limpar { position: static; } }
   .secundario { height: 40px; padding: 0 14px; border: 1px solid var(--linha); border-radius: 10px; background: transparent; color: var(--tinta2); font: 600 14px 'Figtree', system-ui, sans-serif; cursor: pointer; }
   .secundario:hover { color: var(--tinta); border-color: var(--tinta3); }
   .secundario:focus-visible { outline-color: var(--palco); }
@@ -160,7 +166,13 @@
   <div class="envolve">
     <div class="topo">
       <div>
-        <div class="eyebrow">SIMULADOR DE PREÇO · NUVEMSHOP + PAGAR.ME</div>
+        <div class="cabeca">
+          <div class="eyebrow">SIMULADOR DE PREÇO · NUVEMSHOP + PAGAR.ME</div>
+          <button type="button" class="limpar" id="limpar">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+            Limpar campos
+          </button>
+        </div>
         <h1>Quanto cobrar por este produto?</h1>
       </div>
       <div class="entradas">
@@ -257,7 +269,6 @@
       <div class="excesso" id="excesso" hidden></div>
     </div>
     <div class="legenda" id="legenda"></div>
-    <div><button type="button" class="secundario" id="limpar">Limpar valores</button></div>
     </div>
   </div>
 </section>
@@ -320,6 +331,7 @@ function calcular() {
   const lucro = P - total, ok = lucro >= 0, margem = P > 0 ? lucro / P : 0;
 
   $('vazio').hidden = !vazio;
+  $('limpar').hidden = semCusto && !metaManual;
   $('cheio').hidden = vazio;
   $('cheio').style.display = vazio ? 'none' : 'contents';
   $('regua').classList.toggle('desligada', vazio);
@@ -447,7 +459,7 @@ $('exemplo').addEventListener('click', e => {
 });
 $('sugExato').addEventListener('click', () => { vendaManual = false; calcular(); });
 $('sugRedondo').addEventListener('click', e => { vendaManual = true; $('venda').value = dec(+e.currentTarget.dataset.p); calcular(); });
-$('limpar').addEventListener('click', () => { vendaManual = false; $('custo').value = ''; $('venda').value = ''; calcular(); $('custo').focus(); });
+$('limpar').addEventListener('click', () => { vendaManual = false; metaManual = false; $('custo').value = ''; $('venda').value = ''; calcular(); $('custo').focus(); });
 calcular();
 </script>
 </body>
