@@ -20,7 +20,7 @@
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       color-scheme: dark;
-      --palco: #3A2A27;
+      --palco: #F6D9D1;
       --chao: #14201A; --tinta: #F3F4EF; --tinta2: #C4CFC7; --tinta3: #8CA096; --linha: #2A3B32; --cartao: #1B2921;
       --ok-fundo: #1C4A2C; --ok-texto: #8FDCA8; --aviso-fundo: #4A2A1E; --aviso-texto: #FFB6A0;
       --s1: #3D9C6F; --s2: #E06A63; --s3: #5FB6E0; --s4: #E29A3D; --s5: #D99BAE; --s6: #6FD666;
@@ -28,7 +28,7 @@
   }
   :root[data-theme="dark"] {
     color-scheme: dark;
-    --palco: #3A2A27;
+    --palco: #F6D9D1;
     --chao: #14201A; --tinta: #F3F4EF; --tinta2: #C4CFC7; --tinta3: #8CA096; --linha: #2A3B32; --cartao: #1B2921;
     --ok-fundo: #1C4A2C; --ok-texto: #8FDCA8; --aviso-fundo: #4A2A1E; --aviso-texto: #FFB6A0;
     --s1: #3D9C6F; --s2: #E06A63; --s3: #5FB6E0; --s4: #E29A3D; --s5: #D99BAE; --s6: #6FD666;
@@ -199,6 +199,24 @@
   .passos li { background: var(--palco); }
   .passos li::before { background: var(--rosa); color: var(--verde); }
   .vazio .icone { background: var(--palco); color: var(--perda-texto); }
+  /* Container de resultados em forma de equação: venda − custos = lucro */
+  .equacao { display: flex; align-items: stretch; gap: 16px; padding: 24px; background: #FFFFFF; border: 1px solid var(--rosa-suave); border-radius: 24px; box-shadow: 0 8px 24px rgba(217,107,126,.10); color: var(--verde); }
+  .termo { flex: 1 1 0px; min-width: 0; display: flex; flex-direction: column; gap: 8px; padding: 20px 22px; border-radius: 18px; background: #FFF7F4; }
+  .termo-venda { flex-grow: 1.35; }
+  .termo-lucro { background: #EAF6EE; }
+  .termo-lucro.perda { background: #FBE0D8; }
+  .operador { display: flex; align-items: center; justify-content: center; font-size: 40px; font-weight: 800; line-height: 1; color: var(--rosa-escuro); }
+  .rot-termo { font-size: 13px; font-weight: 700; color: var(--palco-texto2); }
+  .valor-termo { font-family: var(--display); font-size: clamp(30px, 3.4vw, 44px); white-space: nowrap; font-weight: 800; letter-spacing: -.02em; line-height: 1.1; }
+  .detalhe-termo { font-size: 13px; line-height: 1.5; color: var(--palco-texto2); }
+  .termo .venda span { font-size: 22px; }
+  .termo .venda input { width: 100%; max-width: 220px; font-size: clamp(32px, 3.6vw, 44px); font-weight: 800; }
+  .termo .grande { white-space: nowrap; font-size: clamp(32px, 4vw, 52px); font-weight: 900; line-height: 1.05; }
+  .margem-pill { align-self: flex-start; display: inline-flex; align-items: center; height: 30px; padding: 0 12px; border-radius: 999px; background: #FFFFFF; font-size: 14px; font-weight: 800; }
+  @media (max-width: 1000px) {
+    .equacao { flex-direction: column; gap: 6px; padding: 16px; }
+    .operador { font-size: 28px; }
+  }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
@@ -242,9 +260,9 @@
       </div>
     </div>
 
-    <div class="numeros">
-      <div class="grupo">
-        <label for="venda">Valor de venda</label>
+    <div class="equacao">
+      <div class="termo termo-venda">
+        <label for="venda" class="rot-termo">Valor de venda</label>
         <div class="venda"><span>R$</span><input id="venda" inputmode="decimal" autocomplete="off" placeholder="0,00"></div>
         <div class="sugestao" id="sugestao" hidden>
           <span id="sugestaoRot">Sugerido para a sua margem ideal</span>
@@ -254,13 +272,17 @@
           </div>
         </div>
       </div>
-      <div class="grupo" aria-live="polite">
-        <div class="rotulo-linha"><span class="rot" style="font-size:13px;font-weight:600;color:var(--palco-texto2)">Lucro por venda</span><span class="chip" id="chip"></span></div>
-        <span class="grande" id="lucro"></span>
+      <div class="operador" aria-hidden="true">−</div>
+      <div class="termo">
+        <span class="rot-termo">Custos e taxas</span>
+        <span class="valor-termo" id="custosTotal"></span>
+        <span class="detalhe-termo" id="custosDet"></span>
       </div>
-      <div class="grupo">
-        <span class="rot" style="font-size:13px;font-weight:600;color:var(--palco-texto2)">Margem</span>
-        <span class="medio" id="margem"></span>
+      <div class="operador" aria-hidden="true">=</div>
+      <div class="termo termo-lucro" id="termoLucro" aria-live="polite">
+        <div class="rotulo-linha"><span class="rot-termo">Lucro por venda</span><span class="chip" id="chip"></span></div>
+        <span class="grande" id="lucro"></span>
+        <span class="margem-pill" id="margem"></span>
       </div>
     </div>
 
@@ -401,7 +423,10 @@ function calcular() {
     $('lucro').textContent = 'R$ —';
     $('lucro').classList.remove('perda');
     $('chip').hidden = true;
-    $('margem').textContent = '—';
+    $('margem').textContent = 'margem —';
+    $('termoLucro').classList.remove('perda');
+    $('custosTotal').textContent = 'R$ —';
+    $('custosDet').textContent = 'Aparece quando você informar o custo';
     $('zonaPerda').style.width = '0px';
     $('zonaLucro').hidden = true;
     $('marcas').innerHTML = '';
@@ -428,7 +453,10 @@ function calcular() {
   $('lucro').classList.toggle('perda', !ok);
   $('chip').className = 'chip' + (ok ? '' : ' perda');
   $('chip').innerHTML = (ok ? ICON_OK : ICON_ALERTA) + '<span>' + (ok ? 'Lucro' : 'Prejuízo') + '</span>';
-  $('margem').textContent = P > 0 ? pct(margem) : '—';
+  $('margem').textContent = P > 0 ? pct(margem) + ' de margem' : '—';
+  $('termoLucro').classList.toggle('perda', !ok);
+  $('custosTotal').textContent = brl(total);
+  $('custosDet').innerHTML = `Produto e caixa ${brl(C + caixa)}<br>Taxas, anúncio, imposto e custos fixos ${brl(total - C - caixa)}`;
 
   // Régua
   const Pr = P / 100;
