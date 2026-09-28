@@ -7,7 +7,7 @@ Abra `calculadora.html` no navegador. Não precisa de instalação.
 ## Campos
 - Custo de produção
 - Caixa (R$ 1,50, R$ 3,00 ou R$ 9,00)
-- Margem ideal (%)
+- Margem ideal (%): automática por padrão, com lucro igual ao custo de produção; pode ser trocada
 - Valor de venda (digitado ou pela barra deslizante)
 
 ## Custos considerados (sobre o valor de venda)

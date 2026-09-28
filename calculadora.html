@@ -102,6 +102,8 @@
   .usar { height: 48px; padding: 0 20px; border: 0; border-radius: 12px; background: var(--palco); color: #FFFFFF; font: 700 15px 'Figtree', system-ui, sans-serif; cursor: pointer; }
   .usar:hover { filter: brightness(1.1); }
   .usar:focus-visible { outline-color: var(--palco); }
+  .meta-modo { display: flex; align-items: center; gap: 6px; min-height: 18px; font-size: 12px; color: var(--palco-texto2); }
+  .meta-modo button { padding: 0; border: 0; background: none; color: #FFFFFF; font: 700 12px 'Figtree', system-ui, sans-serif; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
   .meta-acoes { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 
   .cab { display: flex; align-items: baseline; justify-content: space-between; gap: 8px 16px; flex-wrap: wrap; }
@@ -169,7 +171,8 @@
         </div>
         <div class="grupo">
           <label for="meta">Margem ideal</label>
-          <div class="campo pequeno"><input id="meta" inputmode="decimal" autocomplete="off" value="15" style="text-align:right"><span>%</span></div>
+          <div class="campo pequeno"><input id="meta" inputmode="decimal" autocomplete="off" style="text-align:right" aria-describedby="metaModo"><span>%</span></div>
+          <div class="meta-modo"><span id="metaModo"></span><button type="button" id="metaAuto" hidden>automática</button></div>
         </div>
       </div>
     </div>
@@ -210,7 +213,7 @@
         <p id="vazioTexto">Preencha os campos no topo para ver quanto sobra de cada venda depois das taxas da Nuvemshop e da Pagar.me, do anúncio, do imposto e dos custos fixos.</p>
         <ol class="passos">
           <li><span><b>Custo de produção</b> e o tamanho da <b>caixa</b></span></li>
-          <li><span>A <b>margem ideal</b> para o seu negócio (15% já vem sugerido)</span></li>
+          <li><span>A <b>margem ideal</b>: por padrão, lucro igual ao custo de produção</span></li>
           <li><span>O <b>valor de venda</b>, ou use o preço recomendado</span></li>
         </ol>
         <div class="acoes">
@@ -261,9 +264,10 @@ const ICON_OK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stro
 const ICON_ALERTA = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M12 7v6"/><path d="M12 17h.01"/></svg>';
 
 let caixa = 300;
+let metaManual = false;   // false = margem automática (lucro igual ao custo de produção)
 try {
   const s = JSON.parse(localStorage.getItem('calc-fpm') || 'null');
-  if (s) { $('custo').value = s.custo ?? $('custo').value; $('venda').value = s.venda ?? $('venda').value; $('meta').value = s.meta ?? $('meta').value; caixa = s.caixa ?? caixa; }
+  if (s) { $('custo').value = s.custo ?? $('custo').value; $('venda').value = s.venda ?? $('venda').value; if (s.metaManual) { metaManual = true; $('meta').value = s.meta ?? ''; } caixa = s.caixa ?? caixa; }
 } catch (e) {}
 
 const vazioCampo = id => !$(id).value.trim();
@@ -272,13 +276,24 @@ function calcular() {
   const semCusto = vazioCampo('custo'), semVenda = vazioCampo('venda'), vazio = semCusto || semVenda;
   const P = Math.round(num($('venda').value) * 100);
   const C = Math.round(num($('custo').value) * 100);
-  const metaPct = Math.min(num($('meta').value), 45) / 100;   // acima de 45,08% é impossível
   const nuvem = r(P * TAXAS.nuvemshop), pgPct = r(P * TAXAS.pagarme), anuncio = r(P * TAXAS.anuncio), imposto = r(P * TAXAS.imposto), fixos = r(P * TAXAS.fixos);
   const total = C + caixa + nuvem + pgPct + PAGARME_FIXA + anuncio + imposto + fixos;
   const lucro = P - total, ok = lucro >= 0, margem = P > 0 ? lucro / P : 0;
   const base = C + caixa + PAGARME_FIXA;
   const precoPara = m => Math.ceil(base / (SOBRA - m) - 1e-7);
-  const minimo = precoPara(0), precoMeta = precoPara(metaPct);
+  const minimo = precoPara(0);
+  let metaPct, precoMeta;
+  if (metaManual) {
+    metaPct = Math.min(num($('meta').value), 45) / 100;       // acima de 45,08% é impossível
+    precoMeta = precoPara(metaPct);
+  } else {
+    precoMeta = Math.ceil((base + C) / SOBRA - 1e-7);         // preço em que o lucro ≈ custo de produção
+    metaPct = precoMeta > 0 ? C / precoMeta : 0;
+    if (document.activeElement !== $('meta')) $('meta').value = (metaPct * 100).toLocaleString('pt-BR', { maximumFractionDigits: 1 });
+  }
+  $('metaModo').textContent = metaManual ? 'Valor seu ·' : 'Automática: lucro = custo';
+  $('metaAuto').hidden = !metaManual;
+  const metaTxt = pct(metaPct, metaManual ? 0 : 1);
 
   $('vazio').hidden = !vazio;
   $('cheio').hidden = vazio;
@@ -294,7 +309,7 @@ function calcular() {
     $('marcas').innerHTML = '';
     $('sMin').textContent = ''; $('sMax').textContent = '';
     if (!semCusto) {
-      $('vazioTitulo').textContent = `Agora o valor de venda. Para ${pct(metaPct, 0)} de margem, cobre ${brl(precoMeta)}`;
+      $('vazioTitulo').textContent = `Agora o valor de venda. Para ${metaTxt} de margem, cobre ${brl(precoMeta)}`;
       $('vazioTexto').textContent = `Com esse custo e essa caixa, o preço mínimo sem prejuízo é ${brl(minimo)}. Digite o seu preço no campo "Valor de venda" ou use o recomendado.`;
       $('exemplo').textContent = 'Usar ' + brl(precoMeta);
       $('exemplo').dataset.p = precoMeta;
@@ -329,16 +344,16 @@ function calcular() {
   $('sMin').textContent = 'R$ ' + sMin; $('sMax').textContent = 'R$ ' + sMax;
   const fMin = fr(minimo / 100);
   $('zonaPerda').style.width = fMin <= 0 ? '0px' : pos(fMin);
-  const marcas = [{ c: minimo, rot: 'preço mínimo', cls: 'minimo' }, { c: precoMeta, rot: 'sua meta · ' + pct(metaPct, 0), cls: 'meta' }]
+  const marcas = [{ c: minimo, rot: 'preço mínimo', cls: 'minimo' }, { c: precoMeta, rot: 'sua meta · ' + metaTxt, cls: 'meta' }]
     .filter(m => { const f = fr(m.c / 100); return f >= 0 && f <= 1; });
   $('marcas').innerHTML = marcas.map(m => `<div class="marca ${m.cls}" style="left:${pos(fr(m.c / 100))}"><i></i><b>${brl(m.c)}</b><small>${m.rot}</small></div>`).join('');
 
   // Margem ideal
   const atingiu = P > 0 && margem >= metaPct - 1e-9;
-  $('metaTitulo').textContent = `Preço recomendado para ${pct(metaPct, 0)} de margem: ${brl(precoMeta)}`;
+  $('metaTitulo').textContent = `Preço recomendado para ${metaTxt} de margem: ${brl(precoMeta)}`;
   $('metaTexto').textContent = P <= 0 ? 'Informe o valor de venda para comparar com a sua meta.'
     : atingiu ? `Seu preço atual passa da meta em ${brl(P - precoMeta)}. Cada venda deixa ${brl(lucro)} de lucro.`
-    : `Faltam ${brl(precoMeta - P)} no preço para chegar à meta. No preço recomendado, o lucro por venda seria de ${brl(Math.round(precoMeta * metaPct))} aproximadamente.`;
+    : `Faltam ${brl(precoMeta - P)} no preço para chegar à meta. No preço recomendado, o lucro por venda seria de cerca de ${brl(Math.round(precoMeta * metaPct))}.`;
   $('estado').className = 'estado' + (atingiu ? '' : ' abaixo');
   $('estado').innerHTML = (atingiu ? ICON_OK : ICON_ALERTA).replace('<svg', '<svg width="14" height="14"') + (atingiu ? 'Dentro da meta' : 'Abaixo da meta');
   $('usarMeta').textContent = 'Usar ' + brl(precoMeta);
@@ -373,15 +388,16 @@ function calcular() {
 }
 
 function salvar() {
-  try { localStorage.setItem('calc-fpm', JSON.stringify({ custo: $('custo').value, venda: $('venda').value, meta: $('meta').value, caixa })); } catch (e) {}
+  try { localStorage.setItem('calc-fpm', JSON.stringify({ custo: $('custo').value, venda: $('venda').value, meta: $('meta').value, metaManual, caixa })); } catch (e) {}
 }
 
 ['custo', 'venda'].forEach(id => {
   $(id).addEventListener('input', calcular);
   $(id).addEventListener('blur', () => { if (vazioCampo(id)) return; $(id).value = dec(Math.round(num($(id).value) * 100)); calcular(); });
 });
-$('meta').addEventListener('input', calcular);
-$('meta').addEventListener('blur', () => { $('meta').value = Math.min(num($('meta').value), 45).toLocaleString('pt-BR', { maximumFractionDigits: 1 }); calcular(); });
+$('meta').addEventListener('input', () => { metaManual = $('meta').value.trim() !== ''; calcular(); });
+$('metaAuto').addEventListener('click', () => { metaManual = false; calcular(); });
+$('meta').addEventListener('blur', () => { if (!metaManual) { calcular(); return; } $('meta').value = Math.min(num($('meta').value), 45).toLocaleString('pt-BR', { maximumFractionDigits: 1 }); calcular(); });
 $('deslize').addEventListener('input', e => { $('venda').value = dec(Math.round(parseFloat(e.target.value) * 100)); calcular(); });
 $('caixas').addEventListener('click', e => { const b = e.target.closest('button'); if (b) { caixa = +b.dataset.v; calcular(); } });
 $('usarMeta').addEventListener('click', e => { $('venda').value = dec(+e.currentTarget.dataset.p); calcular(); });
