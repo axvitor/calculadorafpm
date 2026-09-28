@@ -62,6 +62,13 @@
   .venda span { font-family: var(--display); font-size: 30px; font-weight: 600; color: var(--palco-texto2); }
   .venda input { width: 240px; max-width: 60vw; border: 0; border-bottom: 2px solid rgba(255,255,255,.45); padding: 0 0 4px; background: transparent; font-family: var(--display); font-size: 60px; font-weight: 700; letter-spacing: -.02em; color: #FFFFFF; outline: none; }
   .venda input:focus { border-bottom-color: #FFFFFF; }
+  .sugestao { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; font-size: 12px; font-weight: 600; color: var(--palco-texto2); }
+  .sugestao-botoes { display: flex; gap: 8px; flex-wrap: wrap; }
+  .sugestao button { display: inline-flex; align-items: baseline; gap: 6px; height: 36px; padding: 0 12px; border: 1px solid rgba(255,255,255,.35); border-radius: 999px; background: transparent; color: #FFFFFF; font: 700 14px 'Figtree', system-ui, sans-serif; cursor: pointer; }
+  .sugestao button small { font-size: 11px; font-weight: 600; color: var(--palco-texto2); }
+  .sugestao button:hover { background: rgba(255,255,255,.12); }
+  .sugestao button[aria-pressed="true"] { background: #FFFFFF; color: #1E2AA0; border-color: #FFFFFF; }
+  .sugestao button[aria-pressed="true"] small { color: #4B4F6E; }
   .rotulo-linha { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
   .chip { display: inline-flex; align-items: center; gap: 5px; height: 24px; padding: 0 10px; border-radius: 999px; font-size: 12px; font-weight: 700; background: rgba(255,255,255,.16); color: #FFFFFF; }
   .chip.perda { background: var(--perda); color: #151733; }
@@ -181,6 +188,13 @@
       <div class="grupo">
         <label for="venda">Valor de venda</label>
         <div class="venda"><span>R$</span><input id="venda" inputmode="decimal" autocomplete="off" placeholder="0,00"></div>
+        <div class="sugestao" id="sugestao" hidden>
+          <span id="sugestaoRot">Sugerido para a sua margem ideal</span>
+          <div class="sugestao-botoes">
+            <button type="button" id="sugExato"></button>
+            <button type="button" id="sugRedondo"></button>
+          </div>
+        </div>
       </div>
       <div class="grupo" aria-live="polite">
         <div class="rotulo-linha"><span class="rot" style="font-size:13px;font-weight:600;color:var(--palco-texto2)">Lucro por venda</span><span class="chip" id="chip"></span></div>
@@ -300,6 +314,22 @@ function calcular() {
   $('cheio').style.display = vazio ? 'none' : 'contents';
   $('regua').classList.toggle('desligada', vazio);
   $('deslize').disabled = vazio;
+  // Sugestão de preço pela margem ideal (exato e terminado em ,90)
+  let redondo = Math.floor(precoMeta / 100) * 100 + 90;
+  if (redondo < precoMeta) redondo += 100;
+  const temSugestao = !semCusto && precoMeta > 0;
+  $('sugestao').hidden = !temSugestao;
+  if (temSugestao) {
+    $('sugestaoRot').textContent = `Sugerido para ${metaTxt} de margem ideal`;
+    $('sugExato').innerHTML = `${brl(precoMeta)} <small>exato</small>`;
+    $('sugExato').dataset.p = precoMeta;
+    $('sugExato').setAttribute('aria-pressed', String(P === precoMeta));
+    $('sugRedondo').innerHTML = `${brl(redondo)} <small>final ,90</small>`;
+    $('sugRedondo').dataset.p = redondo;
+    $('sugRedondo').setAttribute('aria-pressed', String(P === redondo));
+    $('sugRedondo').hidden = redondo === precoMeta;
+  }
+
   if (vazio) {
     $('lucro').textContent = 'R$ —';
     $('lucro').classList.remove('perda');
@@ -407,6 +437,7 @@ $('exemplo').addEventListener('click', e => {
   else { $('custo').value = '25,00'; $('venda').value = '89,90'; caixa = 300; }
   calcular();
 });
+['sugExato', 'sugRedondo'].forEach(id => $(id).addEventListener('click', e => { $('venda').value = dec(+e.currentTarget.dataset.p); calcular(); }));
 $('limpar').addEventListener('click', () => { $('custo').value = ''; $('venda').value = ''; calcular(); $('custo').focus(); });
 calcular();
 </script>
