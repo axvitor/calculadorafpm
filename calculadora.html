@@ -393,16 +393,6 @@
     </div>
 
     <div id="cheio" style="display:contents">
-    <div class="meta-cartao" id="metaCartao">
-      <div class="texto">
-        <h2 id="metaTitulo"></h2>
-        <p id="metaTexto"></p>
-      </div>
-      <div class="meta-acoes">
-        <span class="estado" id="estado"></span>
-        <button type="button" class="usar" id="usarMeta"></button>
-      </div>
-    </div>
 
 
     <section class="desconto" id="secDesconto" aria-labelledby="descontoTitulo">
@@ -688,17 +678,6 @@ function calcular() {
     .filter(m => { const f = fr(m.c / 100); return f >= 0 && f <= 1; });
   $('marcas').innerHTML = marcas.map(m => `<div class="marca ${m.cls}" style="left:${pos(fr(m.c / 100))}"><i></i><b>${brl(m.c)}</b><small>${m.rot}</small></div>`).join('');
 
-  // Margem ideal
-  const atingiu = P > 0 && margem >= metaPct - 1e-9;
-  $('metaTitulo').textContent = `Preço recomendado para ${metaTxt} de margem: ${brl(precoMeta)}`;
-  $('metaTexto').textContent = P <= 0 ? 'Informe o valor de venda para comparar com a sua meta.'
-    : atingiu ? `Seu preço atual passa da meta em ${brl(P - precoMeta)}. Cada venda deixa ${brl(lucro)} de lucro.`
-    : `Faltam ${brl(precoMeta - P)} no preço para chegar à meta. No preço recomendado, o lucro por venda seria de cerca de ${brl(Math.round(precoMeta * metaPct))}.`;
-  $('estado').className = 'estado' + (atingiu ? '' : ' abaixo');
-  $('estado').innerHTML = (atingiu ? ICON_OK : ICON_ALERTA).replace('<svg', '<svg width="14" height="14"') + (atingiu ? 'Dentro da meta' : 'Abaixo da meta');
-  $('usarMeta').textContent = 'Usar ' + brl(precoMeta);
-  $('usarMeta').dataset.p = precoMeta;
-  $('usarMeta').hidden = precoMeta === P;
 
   // Desconto: níveis sugeridos e personalizado; o gráfico mostra o escolhido
   const nd = niveisDesconto(P, C);
@@ -766,7 +745,6 @@ $('metaAuto').addEventListener('click', () => { metaManual = false; calcular(); 
 $('meta').addEventListener('blur', () => { if (!metaManual) { calcular(); return; } $('meta').value = Math.min(num($('meta').value), 45).toLocaleString('pt-BR', { maximumFractionDigits: 1 }); calcular(); });
 $('deslize').addEventListener('input', e => { vendaManual = true; $('venda').value = dec(Math.round(parseFloat(e.target.value) * 100)); calcular(); });
 $('caixas').addEventListener('click', e => { const b = e.target.closest('button'); if (b) { caixa = +b.dataset.v; calcular(); } });
-$('usarMeta').addEventListener('click', e => { vendaManual = true; $('venda').value = dec(+e.currentTarget.dataset.p); calcular(); });
 $('exemplo').addEventListener('click', e => {
   const p = e.currentTarget.dataset.p;
   vendaManual = false;
