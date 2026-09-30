@@ -309,7 +309,17 @@
   .rd-nota { font-size: 12px; color: var(--tinta2); }
   @media (max-width: 1000px) { .abas-desconto { grid-template-columns: repeat(3, minmax(0, 1fr)); } .resumo-desconto { flex-direction: column; } }
   @media (max-width: 480px) { .abas-desconto { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+  /* Animações */
+  .barra div { transition: flex-grow .45s cubic-bezier(.2,.7,.2,1); }
+  .marca-desconto { transition: left .45s cubic-bezier(.2,.7,.2,1); }
+  .aba-desconto, .segmentos button, .sugestao button, .info-botao { transition: background-color .2s, border-color .2s, box-shadow .2s, color .2s; }
+  .termo-lucro { transition: background-color .3s; }
+  .grande, .valor-termo, .rd-valor, .rd-linha b, .margem-pill, .legenda .valor { font-variant-numeric: tabular-nums; }
+  @keyframes surgir { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  @keyframes pop { 0% { opacity: .4; transform: scale(.85); } 60% { transform: scale(1.06); } 100% { opacity: 1; transform: scale(1); } }
+  .surgir { animation: surgir .35s cubic-bezier(.2,.7,.2,1); }
+  .pop { animation: pop .3s ease-out; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 </style>
 </head>
 <body>
@@ -506,6 +516,25 @@ try {
 
 const vazioCampo = id => !$(id).value.trim();
 
+// Animações: os números contam até o novo valor e alguns blocos surgem suavemente.
+// Quem pede "reduzir movimento" no sistema vê as mudanças sem animação.
+const semMovimento = matchMedia('(prefers-reduced-motion: reduce)').matches;
+function animarNumero(el, alvo, formato) {
+  cancelAnimationFrame(el._raf);
+  const ini = el._atual;
+  if (semMovimento || ini == null || ini === alvo) { el._atual = alvo; el.textContent = formato(alvo); return; }
+  const t0 = performance.now(), dur = 380;
+  const passo = t => {
+    const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+    el._atual = k < 1 ? ini + (alvo - ini) * e : alvo;
+    el.textContent = formato(Math.round(el._atual));
+    if (k < 1) el._raf = requestAnimationFrame(passo);
+  };
+  el._raf = requestAnimationFrame(passo);
+}
+function fixarTexto(el, txt) { cancelAnimationFrame(el._raf); el._atual = null; el.textContent = txt; }
+function reanimar(el, classe) { if (semMovimento) return; el.classList.remove(classe); void el.offsetWidth; el.classList.add(classe); }
+
 // Máscara de preço: os dígitos entram pela direita e a vírgula fica antes dos 2 últimos (2 → 0,02 → 0,25 → 2,50 → 25,00)
 function mascaraPreco(el) {
   const d = el.value.replace(/\D/g, '').replace(/^0+/, '').slice(0, 11);
@@ -560,10 +589,10 @@ function cabecalhoDesconto(nd, P, C, margemAtual) {
   $('descontoAviso').hidden = !!nd;
 }
 
-function compara(id, antes, depois, nota) {
+function compara(id, antes, depois, formato, nota) {
   const q = c => $(id).querySelector(`[data-campo="${c}"]`);
   q('antesValor').textContent = antes;
-  q('depois').textContent = depois;
+  animarNumero(q('depois'), depois, formato);
   q('nota').textContent = nota;
 }
 
@@ -585,16 +614,20 @@ function renderDesconto(nd, P, C, margemAtual) {
   });
   syncRegua(opcoes[opcoes.length - 1]);
   // Sem desconto: só as abas aparecem; o resumo volta ao escolher um nível
+  const estavaOculto = $('resumoDesconto').hidden, reguaOculta = $('rdRegua').hidden;
   $('resumoDesconto').hidden = !escolhida;
-  if (!escolhida) return null;
+  if (!escolhida) { $('resumoDesconto').dataset.nivel = ''; return null; }
+  if (estavaOculto) reanimar($('resumoDesconto'), 'surgir');
+  if ($('resumoDesconto').dataset.nivel !== escolhida.k) { $('resumoDesconto').dataset.nivel = escolhida.k; reanimar($('rdBadge'), 'pop'); }
   $('rdRegua').hidden = escolhida.k !== 'custom';
+  if (reguaOculta && !$('rdRegua').hidden) reanimar($('rdRegua'), 'surgir');
   const k = composicao(escolhida.preco, C), m = k.lucro / escolhida.preco;
   $('rdBadge').textContent = '−' + pctDesc(escolhida.d);
   $('rdNome').textContent = 'Desconto ' + escolhida.nome;
   $('rdOriginal').textContent = brl(P);
-  $('rdPreco').textContent = brl(escolhida.preco);
-  compara('rdLucro', brl(lucroAtual), brl(k.lucro), '−' + brl(lucroAtual - k.lucro) + ' por venda');
-  compara('rdMargem', pct(margemAtual), pct(m), '−' + fmtNum(Math.round((margemAtual - m) * 1000) / 10) + ' pontos percentuais');
+  animarNumero($('rdPreco'), escolhida.preco, brl);
+  compara('rdLucro', brl(lucroAtual), k.lucro, brl, '−' + brl(lucroAtual - k.lucro) + ' por venda');
+  compara('rdMargem', pct(margemAtual), Math.round(m * 1000), v => pct(v / 1000), '−' + fmtNum(Math.round((margemAtual - m) * 1000) / 10) + ' pontos percentuais');
   return escolhida;
 }
 
@@ -653,12 +686,12 @@ function calcular() {
   }
 
   if (vazio) {
-    $('lucro').textContent = 'R$ —';
+    fixarTexto($('lucro'), 'R$ —');
     $('lucro').classList.remove('perda');
     $('chip').hidden = true;
-    $('margem').textContent = 'margem —';
+    fixarTexto($('margem'), 'margem —');
     $('termoLucro').classList.remove('perda');
-    $('custosTotal').textContent = 'R$ —';
+    fixarTexto($('custosTotal'), 'R$ —');
     $('zonaPerda').style.width = '0px';
     $('zonaLucro').hidden = true;
     $('marcas').innerHTML = '';
@@ -681,13 +714,14 @@ function calcular() {
   $('chip').hidden = false;
 
   // Números principais
-  $('lucro').textContent = brl(lucro);
+  animarNumero($('lucro'), lucro, brl);
   $('lucro').classList.toggle('perda', !ok);
   $('chip').className = 'chip' + (ok ? '' : ' perda');
+  if ($('chip').dataset.ok !== String(ok)) { $('chip').dataset.ok = String(ok); reanimar($('chip'), 'pop'); }
   $('chip').innerHTML = (ok ? ICON_OK : ICON_ALERTA) + '<span>' + (ok ? 'Lucro' : 'Prejuízo') + '</span>';
-  $('margem').textContent = P > 0 ? pct(margem) + ' de margem' : '—';
+  if (P > 0) animarNumero($('margem'), Math.round(margem * 1000), v => pct(v / 1000) + ' de margem'); else fixarTexto($('margem'), '—');
   $('termoLucro').classList.toggle('perda', !ok);
-  $('custosTotal').textContent = brl(total);
+  animarNumero($('custosTotal'), total, brl);
 
   // Régua
   const Pr = P / 100;
@@ -720,7 +754,8 @@ function calcular() {
   const okd = cd.lucro >= 0;
   $('tituloBarra').textContent = 'Para onde vai cada venda de ' + brl(Pd);
   $('pilulaDesconto').hidden = !sel;
-  if (sel) $('pilulaDesconto').textContent = '−' + pctDesc(sel.d) + ' · ' + sel.nome;
+  if (sel) { const t = '−' + pctDesc(sel.d) + ' · ' + sel.nome; if ($('pilulaDesconto').dataset.nivel !== sel.k) { $('pilulaDesconto').dataset.nivel = sel.k; reanimar($('pilulaDesconto'), 'pop'); } $('pilulaDesconto').textContent = t; }
+  else $('pilulaDesconto').dataset.nivel = '';
   $('cabNota').textContent = sel ? `Preço original ${brl(P)} · desconto de ${brl(P - Pd)}` : 'Taxas, anúncio, imposto e custos fixos somam 54,92% do preço + R$ 0,20';
   const partes = [
     { nome: 'Produto e caixa', v: C + caixa, cor: 'var(--s1)', det: `Produto ${brl(C)} + caixa ${brl(caixa)}` },
@@ -731,10 +766,19 @@ function calcular() {
   ];
   const segs = partes.concat(okd && cd.lucro > 0 ? [{ nome: 'Lucro', v: cd.lucro, cor: 'var(--s6)' }] : [])
     .concat(sel ? [{ nome: 'Desconto', v: P - Pd, cor: HACHURA_DESCONTO }] : []).filter(s => s.v > 0);
-  $('barra').innerHTML = segs.map((s, i) => {
-    const a = i === 0 ? '4px' : '0', b = i === segs.length - 1 ? '4px' : '0';
-    return `<div title="${s.nome}: ${brl(s.v)}" style="flex:${s.v} 1 0px;background:${s.cor};border-radius:${a} ${b} ${b} ${a}"></div>`;
-  }).join('');
+  // As fatias mudam de tamanho no lugar; quando entra ou sai uma fatia, ela cresce a partir de zero
+  const barra = $('barra'), antes = {};
+  [...barra.children].forEach(el => { antes[el.dataset.nome] = el.style.flexGrow; });
+  const chave = segs.map(s => s.nome).join('|');
+  if (barra.dataset.chave !== chave) {
+    barra.dataset.chave = chave;
+    barra.innerHTML = segs.map((s, i) => {
+      const a = i === 0 ? '4px' : '0', b = i === segs.length - 1 ? '4px' : '0';
+      return `<div data-nome="${s.nome}" style="flex:${semMovimento ? s.v : (antes[s.nome] || 0)} 1 0px;background:${s.cor};border-radius:${a} ${b} ${b} ${a}"></div>`;
+    }).join('');
+    void barra.offsetWidth;
+  }
+  [...barra.children].forEach((el, i) => { el.style.flexGrow = segs[i].v; el.title = `${segs[i].nome}: ${brl(segs[i].v)}`; });
   $('excesso').hidden = okd;
   if (!okd) $('excesso').style.left = (cd.total > 0 ? Math.min(100, Pd / cd.total * 100) : 0).toFixed(2) + '%';
 
@@ -752,12 +796,25 @@ function calcular() {
 
   const pctP = v => Pd > 0 ? pct(v / Pd) + (sel ? ' do preço pago' : ' do preço') : '—';
   const hachura = 'repeating-linear-gradient(135deg, var(--tinta) 0 2px, transparent 2px 5px)';
-  const itens = partes.map(s => ({ ...s, pctTxt: pctP(s.v), valor: brl(s.v) }))
-    .concat([okd ? { nome: 'Lucro', cor: 'var(--s6)', valor: brl(cd.lucro), pctTxt: pctP(cd.lucro), det: 'O que sobra para você em cada venda' }
-                 : { nome: 'Prejuízo', cor: hachura, valor: brl(cd.lucro), pctTxt: pctP(cd.lucro), det: 'Os custos passam do valor de venda' }]);
-  if (sel) itens.push({ nome: 'Desconto', cor: HACHURA_DESCONTO, valor: brl(P - Pd), pctTxt: pctDesc(sel.d) + ' do preço original', det: `O cliente paga ${brl(Pd)} em vez de ${brl(P)}` });
+  const itens = partes.map(s => ({ ...s, pctTxt: pctP(s.v), n: s.v }))
+    .concat([okd ? { nome: 'Lucro', cor: 'var(--s6)', n: cd.lucro, pctTxt: pctP(cd.lucro), det: 'O que sobra para você em cada venda' }
+                 : { nome: 'Prejuízo', cor: hachura, n: cd.lucro, pctTxt: pctP(cd.lucro), det: 'Os custos passam do valor de venda' }]);
+  if (sel) itens.push({ nome: 'Desconto', cor: HACHURA_DESCONTO, n: P - Pd, pctTxt: pctDesc(sel.d) + ' do preço original', det: `O cliente paga ${brl(Pd)} em vez de ${brl(P)}` });
   $('legenda').classList.toggle('com-desconto', !!sel);
-  $('legenda').innerHTML = itens.map((s, i) => `<div><span class="nome"><i style="background:${s.cor}"></i>${s.nome}<span class="info"><button type="button" class="info-botao" aria-label="Sobre ${s.nome}" aria-describedby="leg-${i}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 11v5"/><path d="M12 7.5h.01"/></svg></button><span class="info-balao" id="leg-${i}" role="tooltip">${s.det}</span></span></span><span class="valor">${s.valor}</span><span class="pct">${s.pctTxt}</span></div>`).join('');
+  // Legenda atualizada no lugar, para os valores contarem até o novo número
+  const leg = $('legenda'), valoresAntes = {};
+  [...leg.children].forEach(d => { valoresAntes[d.dataset.nome] = d.querySelector('.valor')._atual; });
+  const chaveL = itens.map(s => s.nome).join('|');
+  if (leg.dataset.chave !== chaveL) {
+    leg.dataset.chave = chaveL;
+    leg.innerHTML = itens.map((s, i) => `<div data-nome="${s.nome}"><span class="nome"><i style="background:${s.cor}"></i>${s.nome}<span class="info"><button type="button" class="info-botao" aria-label="Sobre ${s.nome}" aria-describedby="leg-${i}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 11v5"/><path d="M12 7.5h.01"/></svg></button><span class="info-balao" id="leg-${i}" role="tooltip"></span></span></span><span class="valor"></span><span class="pct"></span></div>`).join('');
+    [...leg.children].forEach(d => { d.querySelector('.valor')._atual = valoresAntes[d.dataset.nome]; });
+  }
+  [...leg.children].forEach((d, i) => {
+    animarNumero(d.querySelector('.valor'), itens[i].n, brl);
+    d.querySelector('.pct').textContent = itens[i].pctTxt;
+    d.querySelector('.info-balao').textContent = itens[i].det;
+  });
   ajustarLegenda();
 
   document.querySelectorAll('#caixas button').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.v === caixa)));
