@@ -316,7 +316,7 @@
       <div class="entradas">
         <div class="grupo">
           <label for="custo">Custo de produção</label>
-          <div class="campo"><span>R$</span><input id="custo" inputmode="decimal" autocomplete="off" placeholder="0,00"></div>
+          <div class="campo"><span>R$</span><input id="custo" inputmode="numeric" autocomplete="off" placeholder="0,00"></div>
         </div>
         <div class="grupo">
           <span class="rot" id="rotCaixa">Caixa</span>
@@ -337,7 +337,7 @@
     <div class="equacao">
       <div class="termo termo-venda">
         <label for="venda" class="rot-termo">Valor de venda</label>
-        <div class="venda"><span>R$</span><input id="venda" inputmode="decimal" autocomplete="off" placeholder="0,00"></div>
+        <div class="venda"><span>R$</span><input id="venda" inputmode="numeric" autocomplete="off" placeholder="0,00"></div>
         <div class="sugestao" id="sugestao" hidden>
           <span id="sugestaoRot">Sugerido para a sua margem ideal</span>
           <div class="sugestao-botoes">
@@ -479,6 +479,13 @@ try {
 } catch (e) {}
 
 const vazioCampo = id => !$(id).value.trim();
+
+// Máscara de preço: os dígitos entram pela direita e a vírgula fica antes dos 2 últimos (2 → 0,02 → 0,25 → 2,50 → 25,00)
+function mascaraPreco(el) {
+  const d = el.value.replace(/\D/g, '').replace(/^0+/, '').slice(0, 11);
+  el.value = d ? dec(+d) : '';
+  el.setSelectionRange(el.value.length, el.value.length);
+}
 
 const HACHURA_DESCONTO = 'repeating-linear-gradient(135deg, #D96B7E 0 2px, var(--hachura-fundo) 2px 7px)';
 const fmtNum = x => x.toLocaleString('pt-BR', { maximumFractionDigits: 1 });
@@ -737,7 +744,7 @@ function salvar() {
 }
 
 ['custo', 'venda'].forEach(id => {
-  $(id).addEventListener('input', () => { if (id === 'venda') vendaManual = !vazioCampo('venda'); calcular(); });
+  $(id).addEventListener('input', () => { mascaraPreco($(id)); if (id === 'venda') vendaManual = !vazioCampo('venda'); calcular(); });
   $(id).addEventListener('blur', () => { if (vazioCampo(id)) { calcular(); return; } $(id).value = dec(Math.round(num($(id).value) * 100)); calcular(); });
 });
 $('meta').addEventListener('input', () => { metaManual = $('meta').value.trim() !== ''; calcular(); });
