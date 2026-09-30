@@ -234,7 +234,16 @@
   .info-botao:hover { background: var(--realce-forte); color: var(--tinta); }
   .info-balao { position: absolute; left: 50%; top: calc(100% + 8px); z-index: 10; width: max-content; max-width: min(340px, 80vw); padding: 12px 14px; border-radius: 12px; background: var(--tinta); color: var(--chao); font-size: 13px; line-height: 1.45; font-weight: 600; box-shadow: 0 8px 24px rgba(23,57,43,.18); transform: translateX(-50%); opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .15s; }
   .info:hover .info-balao, .info-botao:focus-visible + .info-balao { opacity: 1; visibility: visible; }
-  @media (max-width: 560px) { .info-balao { left: auto; right: -8px; transform: none; } }
+  .rot-info { display: flex; align-items: center; gap: 2px; height: 18px; }
+  .rot-info label { font-size: 13px; font-weight: 600; color: var(--palco-texto2); }
+  .rot-info .info-botao { width: 24px; height: 24px; color: var(--palco-texto2); }
+  .rot-info .info-botao:hover { background: rgba(255,255,255,.6); }
+  /* No celular o balão ocupa a largura da linha, para não sair da tela */
+  @media (max-width: 560px) {
+    .desconto-titulo, .rot-info { position: relative; }
+    .info { position: static; }
+    .info-balao { left: 0; right: 0; transform: none; width: auto; max-width: none; }
+  }
   .desconto-acoes { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
   .desconto-aviso { margin: 0; padding: 14px 18px; border-radius: 16px; background: var(--aviso-fundo); color: var(--aviso-texto); font-size: 14px; font-weight: 700; line-height: 1.45; }
   .forca { display: inline-flex; align-items: flex-end; gap: 3px; height: 15px; }
@@ -330,9 +339,17 @@
           </div>
         </div>
         <div class="grupo">
-          <label for="meta">Margem ideal</label>
+          <div class="rot-info">
+            <label for="meta">Margem ideal</label>
+            <span class="info">
+              <button type="button" class="info-botao" aria-label="Como a margem ideal é definida" aria-describedby="metaModo">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 11v5"/><path d="M12 7.5h.01"/></svg>
+              </button>
+              <span class="info-balao" id="metaModo" role="tooltip"></span>
+            </span>
+          </div>
           <div class="campo pequeno"><input id="meta" inputmode="decimal" autocomplete="off" maxlength="4" style="text-align:right" aria-describedby="metaModo"><span>%</span></div>
-          <div class="meta-modo"><span id="metaModo"></span><button type="button" id="metaAuto" hidden>automática</button></div>
+          <div class="meta-modo"><button type="button" id="metaAuto" hidden>Voltar para automática</button></div>
         </div>
       </div>
     </div>
@@ -591,7 +608,9 @@ function calcular() {
     metaPct = precoMeta > 0 ? C / precoMeta : 0;
     if (document.activeElement !== $('meta')) $('meta').value = (metaPct * 100).toLocaleString('pt-BR', { maximumFractionDigits: 1 });
   }
-  $('metaModo').textContent = metaManual ? 'Valor seu ·' : 'Automática: lucro = custo';
+  $('metaModo').textContent = metaManual
+    ? 'Margem definida por você. Use "Voltar para automática" para calcular de novo a margem em que o lucro por venda fica igual ao custo de produção.'
+    : 'Automática: a margem é calculada para o lucro por venda ficar igual ao custo de produção. Digite outro valor se quiser.';
   $('metaAuto').hidden = !metaManual;
   const metaTxt = pct(metaPct, metaManual ? 0 : 1);
 
