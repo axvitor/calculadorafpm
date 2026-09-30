@@ -16,6 +16,7 @@
     --ok-fundo: #E3F3E6; --ok-texto: #0F3B2C; --aviso-fundo: #FBE3DC; --aviso-texto: #A84226;
     --s1: #D8C3A5; --s2: #F2A69B; --s3: #9CCDE6; --s4: #F4C38A; --s5: #E4B3C3; --s6: #9ED49A;
     --display: 'Nunito', system-ui, sans-serif;
+    --realce: #FFF7F4; --realce-forte: #FFF0EB; --realce-hover: #FFF0EA; --anel: #D9C6BD; --forca-vazia: #F0DCD5; --medidor: #EAF1EC; --trilho-desconto: #F6E6E0; --hachura-fundo: #FFF1EE;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
@@ -24,6 +25,7 @@
       --chao: #14201A; --tinta: #F3F4EF; --tinta2: #C4CFC7; --tinta3: #8CA096; --linha: #2A3B32; --cartao: #1B2921;
       --ok-fundo: #1C4A2C; --ok-texto: #8FDCA8; --aviso-fundo: #4A2A1E; --aviso-texto: #FFB6A0;
       --s1: #3D9C6F; --s2: #E06A63; --s3: #5FB6E0; --s4: #E29A3D; --s5: #D99BAE; --s6: #6FD666;
+      --realce: #1F2E26; --realce-forte: #22332A; --realce-hover: #26382E; --anel: #5A6D63; --forca-vazia: #3A4A42; --medidor: #2A3B32; --trilho-desconto: #3A2F2E; --hachura-fundo: #3A2A2E;
     }
   }
   :root[data-theme="dark"] {
@@ -32,6 +34,7 @@
     --chao: #14201A; --tinta: #F3F4EF; --tinta2: #C4CFC7; --tinta3: #8CA096; --linha: #2A3B32; --cartao: #1B2921;
     --ok-fundo: #1C4A2C; --ok-texto: #8FDCA8; --aviso-fundo: #4A2A1E; --aviso-texto: #FFB6A0;
     --s1: #3D9C6F; --s2: #E06A63; --s3: #5FB6E0; --s4: #E29A3D; --s5: #D99BAE; --s6: #6FD666;
+      --realce: #1F2E26; --realce-forte: #22332A; --realce-hover: #26382E; --anel: #5A6D63; --forca-vazia: #3A4A42; --medidor: #2A3B32; --trilho-desconto: #3A2F2E; --hachura-fundo: #3A2A2E;
   }
 
   * { box-sizing: border-box; }
@@ -138,7 +141,7 @@
   :root[data-theme="dark"] .vazio .icone { color: var(--palco-texto2); }
   .vazio h2 { margin: 0 0 6px; font-family: var(--display); font-size: 24px; font-weight: 700; text-wrap: balance; }
   .vazio p { margin: 0; font-size: 15px; line-height: 1.5; color: var(--tinta2); max-width: 60ch; }
-  .passos { margin: 18px 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; counter-reset: passo; }
+  .passos { margin: 18px 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; counter-reset: passo; }
   .passos li { counter-increment: passo; display: flex; gap: 10px; align-items: flex-start; padding: 14px; border-radius: 16px; background: #FFF4F2; font-size: 14px; line-height: 1.4; color: var(--tinta2); }
   .passos li::before { content: counter(passo); flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: var(--palco); color: #fff; font-size: 13px; font-weight: 700; }
   .passos b { color: var(--tinta); }
@@ -155,6 +158,7 @@
   .secundario:hover { color: var(--tinta); border-color: var(--tinta3); }
   .secundario:focus-visible { outline-color: var(--palco); }
   .regua.desligada { opacity: .45; pointer-events: none; }
+  @media (max-width: 1000px) { .passos { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   @media (max-width: 700px) { .vazio { grid-template-columns: 1fr; padding: 24px; } .passos { grid-template-columns: 1fr; } }
   @media (max-width: 900px) { .legenda { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
   @media (max-width: 560px) {
@@ -219,6 +223,74 @@
     .equacao { flex-direction: column; gap: 6px; padding: 16px; }
     .operador { font-size: 28px; }
   }
+
+  /* Seção de desconto */
+  .desconto { display: flex; flex-direction: column; gap: 18px; }
+  .desconto-cab { display: flex; align-items: flex-end; justify-content: space-between; gap: 14px 24px; flex-wrap: wrap; }
+  .desconto-titulo { display: flex; flex-direction: column; gap: 6px; min-width: 0; flex: 1 1 420px; }
+  .desconto-titulo h2 { margin: 0; font-family: var(--display); font-size: 22px; font-weight: 800; letter-spacing: -.01em; }
+  .desconto-titulo p { margin: 0; font-size: 14px; line-height: 1.5; color: var(--tinta2); max-width: 70ch; }
+  .desconto-acoes { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .base-pill { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px; border: 1px solid var(--linha); border-radius: 999px; background: var(--cartao); font-size: 13px; color: var(--tinta2); white-space: nowrap; }
+  .base-pill b { color: var(--tinta); font-weight: 800; }
+  .desconto-aviso { margin: 0; padding: 14px 18px; border-radius: 16px; background: var(--aviso-fundo); color: var(--aviso-texto); font-size: 14px; font-weight: 700; line-height: 1.45; }
+  .forca { display: inline-flex; align-items: flex-end; gap: 3px; height: 15px; }
+  .forca i { width: 5px; border-radius: 2px; background: var(--forca-vazia); }
+  .forca i:nth-child(1) { height: 6px; } .forca i:nth-child(2) { height: 9px; } .forca i:nth-child(3) { height: 12px; } .forca i:nth-child(4) { height: 15px; }
+  .forca[data-n="1"] i:nth-child(-n+1), .forca[data-n="2"] i:nth-child(-n+2), .forca[data-n="3"] i:nth-child(-n+3), .forca[data-n="4"] i { background: #D96B7E; }
+  .radio { width: 18px; height: 18px; flex-shrink: 0; border-radius: 50%; border: 2px solid var(--anel); display: inline-grid; place-items: center; }
+  .radio::after { content: ""; width: 8px; height: 8px; border-radius: 50%; background: transparent; }
+  .regua-desconto { -webkit-appearance: none; appearance: none; width: 100%; height: 28px; margin: 0; background: transparent; cursor: pointer; --p: 0%; }
+  .regua-desconto::-webkit-slider-runnable-track { height: 8px; border-radius: 4px; background: linear-gradient(to right, var(--rosa) 0 var(--p), var(--trilho-desconto) var(--p) 100%); }
+  .regua-desconto::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; margin-top: -7px; border: 0; border-radius: 50%; background: #FFFFFF; box-shadow: 0 0 0 3px var(--rosa), 0 3px 8px rgba(23,57,43,.2); }
+  .regua-desconto::-moz-range-track { height: 8px; border-radius: 4px; background: var(--trilho-desconto); }
+  .regua-desconto::-moz-range-progress { height: 8px; border-radius: 4px; background: var(--rosa); }
+  .regua-desconto::-moz-range-thumb { width: 22px; height: 22px; border: 0; border-radius: 50%; background: #FFFFFF; box-shadow: 0 0 0 3px var(--rosa), 0 3px 8px rgba(23,57,43,.2); }
+  .regua-desconto:focus { outline: none; }
+  .regua-desconto:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px var(--foco), 0 3px 8px rgba(23,57,43,.2); }
+  .regua-desconto:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 3px var(--foco), 0 3px 8px rgba(23,57,43,.2); }
+  .cd-limites { display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; color: var(--tinta2); }
+  /* Gráfico com o desconto escolhido */
+  .cab-titulo { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .cab .pilula-desconto { display: inline-flex; align-items: center; height: 28px; padding: 0 12px; border-radius: 999px; background: var(--rosa-suave); color: #17392B; font-size: 13px; font-weight: 800; white-space: nowrap; }
+  .barra-wrap.com-desconto { padding-top: 30px; }
+  .marca-desconto { position: absolute; top: 20px; bottom: -6px; width: 2px; margin-left: -1px; border-radius: 1px; background: var(--tinta); }
+  .md-rot { position: absolute; bottom: calc(100% + 4px); left: 50%; transform: translateX(-50%); font-size: 12px; font-weight: 800; color: var(--tinta); white-space: nowrap; }
+  .marca-desconto.direita .md-rot { left: auto; right: 6px; transform: none; }
+  .fim-barra { position: absolute; top: 0; right: 0; font-size: 12px; font-weight: 700; color: var(--tinta2); white-space: nowrap; }
+  .legenda.com-desconto { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 16px; }
+  @media (max-width: 900px) { .legenda.com-desconto { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  @media (max-width: 560px) { .legenda.com-desconto { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+  /* Desconto em abas */
+  .abas-desconto { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 20px; background: var(--realce-forte); }
+  .aba-desconto { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 62px; padding: 8px 6px; border: 2px solid transparent; border-radius: 16px; background: transparent; color: var(--tinta2); font-family: var(--display); text-align: center; cursor: pointer; }
+  .aba-desconto:hover { background: var(--realce-hover); }
+  .aba-desconto[aria-pressed="true"] { background: var(--cartao); color: var(--tinta); border-color: #FFB7C4; box-shadow: 0 4px 12px rgba(217,107,126,.12); }
+  .aba-desconto:disabled { opacity: .5; cursor: not-allowed; }
+  .ad-nome { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 800; }
+  .ad-sub { font-size: 12px; font-weight: 700; color: var(--tinta2); }
+  .resumo-desconto { display: flex; align-items: stretch; gap: 16px; padding: 22px; border: 1px solid var(--rosa-suave); border-radius: 24px; background: var(--cartao); box-shadow: 0 8px 24px rgba(217,107,126,.10); }
+  .rd-preco { flex: 1.4 1 0px; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 6px; padding: 4px 8px; }
+  .rd-topo { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .rd-badge { display: inline-flex; align-items: center; height: 34px; padding: 0 14px; border-radius: 999px; background: var(--rosa); color: #17392B; font-size: 18px; font-weight: 900; }
+  .rd-nome { font-size: 13px; font-weight: 700; color: var(--tinta2); }
+  .rd-de { font-size: 15px; color: var(--tinta2); }
+  .rd-valor { font-size: clamp(36px, 4.4vw, 52px); font-weight: 900; letter-spacing: -.03em; line-height: 1.05; white-space: nowrap; }
+  .rd-regua { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; padding: 14px 16px; border-radius: 16px; background: var(--realce); }
+  .rd-regua-topo { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 13px; font-weight: 700; color: var(--tinta2); }
+  .rd-input { display: inline-flex; align-items: baseline; font-size: 22px; font-weight: 900; color: var(--tinta); }
+  .rd-input input { width: 3.3ch; padding: 0; border: 0; border-bottom: 2px solid var(--rosa); background: transparent; font: 900 22px/1.2 'Nunito', system-ui, sans-serif; color: var(--tinta); text-align: center; outline: none; }
+  .rd-input input:focus { border-bottom-color: var(--tinta2); }
+  @supports (field-sizing: content) { .rd-input input { field-sizing: content; width: auto; min-width: 1.5ch; } }
+  .rd-comparacao { flex: 1 1 0px; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 6px; padding: 16px 18px; border-radius: 18px; background: var(--realce); }
+  .rd-rot { font-size: 13px; font-weight: 700; color: var(--tinta2); }
+  .rd-linha { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .rd-antes { font-size: 15px; color: var(--tinta2); }
+  .rd-linha b { font-size: 26px; font-weight: 900; }
+  .rd-nota { font-size: 12px; color: var(--tinta2); }
+  @media (max-width: 1000px) { .abas-desconto { grid-template-columns: repeat(3, minmax(0, 1fr)); } .resumo-desconto { flex-direction: column; } }
+  @media (max-width: 480px) { .abas-desconto { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
@@ -312,6 +384,7 @@
           <li><span><b>Custo de produção</b> e o tamanho da <b>caixa</b></span></li>
           <li><span>A <b>margem ideal</b>: por padrão, lucro igual ao custo de produção</span></li>
           <li><span>O <b>valor de venda</b>, ou use o preço recomendado</span></li>
+          <li><span>Simule um <b>desconto</b>: Leve, Regular, Pesado, Extremo ou personalizado</span></li>
         </ol>
         <div class="acoes">
           <button type="button" class="usar" id="exemplo">Ver um exemplo</button>
@@ -331,11 +404,57 @@
       </div>
     </div>
 
+
+    <section class="desconto" id="secDesconto" aria-labelledby="descontoTitulo">
+      <div class="desconto-cab">
+        <div class="desconto-titulo">
+          <h2 id="descontoTitulo">Qual desconto aplicar?</h2>
+          <p id="descontoTexto"></p>
+        </div>
+        <div class="desconto-acoes">
+          <span class="base-pill" id="descontoBase"></span>
+        </div>
+      </div>
+      <p class="desconto-aviso" id="descontoAviso" hidden>Com o preço atual não sobra margem para desconto: qualquer desconto dá prejuízo. Aumente o valor de venda para liberar as sugestões.</p>
+      <div class="abas-desconto" id="abasDesconto" role="group" aria-label="Nível de desconto">
+        <button type="button" class="aba-desconto" data-nivel="nenhum" aria-pressed="false"><span class="ad-nome">Sem desconto</span><span class="ad-sub" data-campo="sub"></span></button>
+        <button type="button" class="aba-desconto" data-nivel="leve" aria-pressed="false"><span class="ad-nome">Leve<span class="forca" data-n="1" aria-hidden="true"><i></i><i></i><i></i><i></i></span></span><span class="ad-sub" data-campo="sub"></span></button>
+        <button type="button" class="aba-desconto" data-nivel="regular" aria-pressed="false"><span class="ad-nome">Regular<span class="forca" data-n="2" aria-hidden="true"><i></i><i></i><i></i><i></i></span></span><span class="ad-sub" data-campo="sub"></span></button>
+        <button type="button" class="aba-desconto" data-nivel="pesado" aria-pressed="false"><span class="ad-nome">Pesado<span class="forca" data-n="3" aria-hidden="true"><i></i><i></i><i></i><i></i></span></span><span class="ad-sub" data-campo="sub"></span></button>
+        <button type="button" class="aba-desconto" data-nivel="extremo" aria-pressed="false"><span class="ad-nome">Extremo<span class="forca" data-n="4" aria-hidden="true"><i></i><i></i><i></i><i></i></span></span><span class="ad-sub" data-campo="sub"></span></button>
+        <button type="button" class="aba-desconto" data-nivel="custom" aria-pressed="false"><span class="ad-nome">Personalizado<span class="forca" data-n="0" aria-hidden="true"><i></i><i></i><i></i><i></i></span></span><span class="ad-sub" data-campo="sub"></span></button>
+      </div>
+      <div class="resumo-desconto" id="resumoDesconto" hidden>
+        <div class="rd-preco">
+          <span class="rd-topo"><span class="rd-badge" id="rdBadge"></span><span class="rd-nome" id="rdNome"></span></span>
+          <span class="rd-de" id="rdDe">de <s id="rdOriginal"></s> por</span>
+          <span class="rd-valor" id="rdPreco"></span>
+          <div class="rd-regua" id="rdRegua" hidden>
+            <div class="rd-regua-topo"><label for="descCustomInput">Arraste a régua ou digite o desconto</label><span class="rd-input">−<input id="descCustomInput" inputmode="decimal" autocomplete="off" maxlength="4">%</span></div>
+            <input type="range" class="regua-desconto" id="descCustomRange" min="0" max="46" step="1" aria-label="Arraste para escolher o desconto">
+            <div class="cd-limites"><span>0%</span><span id="descCustomMax"></span></div>
+          </div>
+        </div>
+        <div class="rd-comparacao" id="rdLucro">
+          <span class="rd-rot">Lucro por venda</span>
+          <span class="rd-linha"><span class="rd-antes" data-campo="antes"><s data-campo="antesValor"></s> →</span><b data-campo="depois"></b></span>
+          <span class="rd-nota" data-campo="nota"></span>
+        </div>
+        <div class="rd-comparacao" id="rdMargem">
+          <span class="rd-rot">Margem</span>
+          <span class="rd-linha"><span class="rd-antes" data-campo="antes"><s data-campo="antesValor"></s> →</span><b data-campo="depois"></b></span>
+          <span class="rd-nota" data-campo="nota"></span>
+        </div>
+      </div>
+    </section>
+
     <div class="cab">
-      <h2 id="tituloBarra"></h2>
-      <span>Taxas, anúncio, imposto e custos fixos somam 54,92% do preço + R$ 0,20</span>
+      <div class="cab-titulo"><h2 id="tituloBarra"></h2><span class="pilula-desconto" id="pilulaDesconto" hidden></span></div>
+      <span id="cabNota">Taxas, anúncio, imposto e custos fixos somam 54,92% do preço + R$ 0,20</span>
     </div>
-    <div class="barra-wrap">
+    <div class="barra-wrap" id="barraWrap">
+      <span class="marca-desconto" id="marcaDesconto" hidden><span class="md-rot" id="mdRot"></span></span>
+      <span class="fim-barra" id="fimBarra" hidden></span>
       <div class="barra" id="barra"></div>
       <div class="excesso" id="excesso" hidden></div>
     </div>
@@ -361,13 +480,102 @@ const ICON_ALERTA = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" 
 
 let caixa = 300;
 let metaManual = false;
+let desconto = null;      // nível de desconto escolhido: leve, regular, pesado, extremo, custom
+let descCustom = 10;      // porcentagem da régua do Personalizado
 let vendaManual = false;  // false = valor de venda preenchido com o preço sugerido exato   // false = margem automática (lucro igual ao custo de produção)
 try {
   const s = JSON.parse(localStorage.getItem('calc-fpm') || 'null');
-  if (s) { $('custo').value = s.custo ?? $('custo').value; $('venda').value = s.venda ?? $('venda').value; vendaManual = !!s.vendaManual; if (s.metaManual) { metaManual = true; $('meta').value = s.meta ?? ''; } caixa = s.caixa ?? caixa; }
+  if (s) { $('custo').value = s.custo ?? $('custo').value; $('venda').value = s.venda ?? $('venda').value; vendaManual = !!s.vendaManual; if (s.metaManual) { metaManual = true; $('meta').value = s.meta ?? ''; } caixa = s.caixa ?? caixa; desconto = s.desconto ?? null; if (typeof s.descCustom === 'number') descCustom = s.descCustom; }
 } catch (e) {}
 
 const vazioCampo = id => !$(id).value.trim();
+
+const HACHURA_DESCONTO = 'repeating-linear-gradient(135deg, #D96B7E 0 2px, var(--hachura-fundo) 2px 7px)';
+const fmtNum = x => x.toLocaleString('pt-BR', { maximumFractionDigits: 1 });
+const pctDesc = d => fmtNum(Math.round(d * 1000) / 10) + '%';
+
+// Custos e lucro para qualquer preço (em centavos)
+function composicao(Pc, C) {
+  const nuvem = r(Pc * TAXAS.nuvemshop), pgPct = r(Pc * TAXAS.pagarme), anuncio = r(Pc * TAXAS.anuncio), imposto = r(Pc * TAXAS.imposto), fixos = r(Pc * TAXAS.fixos);
+  const total = C + caixa + nuvem + pgPct + PAGARME_FIXA + anuncio + imposto + fixos;
+  return { nuvem, pgPct, anuncio, imposto, fixos, total, lucro: Pc - total };
+}
+
+// Extremo leva a margem a 0%. Pesado, Regular e Leve usam 75%, 50% e 25% desse desconto máximo.
+function niveisDesconto(P, C) {
+  let precoMin = Math.ceil((C + caixa + PAGARME_FIXA) / SOBRA - 1e-7);
+  while (composicao(precoMin, C).lucro < 0) precoMin++;          // arredondamento das taxas
+  if (P <= precoMin) return null;                                 // sem margem para desconto
+  const dmax = (P - precoMin) / P;
+  const niveis = [['leve', 'Leve', 0.25, 1], ['regular', 'Regular', 0.5, 2], ['pesado', 'Pesado', 0.75, 3]].map(([k, nome, parte, forca]) => {
+    const d = Math.floor(dmax * parte * 100 + 0.5) / 100;         // porcentagem inteira
+    return { k, nome, forca, d, preco: d > 0 ? Math.max(precoMin, r(P * (1 - d))) : null };
+  });
+  niveis.push({ k: 'extremo', nome: 'Extremo', forca: 4, d: Math.floor(dmax * 1000) / 1000, preco: precoMin });
+  return { precoMin, dmax, niveis };
+}
+
+// Desconto escolhido na régua, sem passar do Extremo
+function descontoPersonalizado(nd, P) {
+  const maxPct = Math.floor(nd.dmax * 1000) / 10;
+  const dPct = Math.min(Math.max(descCustom, 0), maxPct);
+  const forca = maxPct > 0 ? Math.ceil(dPct / maxPct * 4 - 1e-9) : 0;
+  return { k: 'custom', nome: 'Personalizado', forca, d: dPct / 100, maxPct, preco: Math.max(nd.precoMin, r(P * (1 - dPct / 100))) };
+}
+
+function syncRegua(nC) {
+  const rng = $('descCustomRange'), M = Math.max(1, Math.floor(nC.maxPct));
+  rng.max = M;
+  if (document.activeElement !== rng) rng.value = Math.min(M, Math.round(nC.d * 100));
+  rng.style.setProperty('--p', (Math.min(M, +rng.value) / M * 100).toFixed(2) + '%');
+  if (document.activeElement !== $('descCustomInput')) $('descCustomInput').value = fmtNum(Math.round(nC.d * 1000) / 10);
+  $('descCustomMax').textContent = 'máx. ' + fmtNum(nC.maxPct) + '%';
+}
+
+function cabecalhoDesconto(nd, P, C, margemAtual) {
+  $('descontoTexto').textContent = `Sugestões calculadas a partir do custo de ${brl(C + caixa)} (produto e caixa) e do preço atual de ${brl(P)}. No Extremo a margem chega a 0%: a venda não dá lucro nem prejuízo.`;
+  $('descontoBase').innerHTML = `Preço atual <b>${brl(P)}</b> · margem <b>${pct(margemAtual)}</b>`;
+  $('descontoAviso').hidden = !!nd;
+}
+
+function compara(id, antes, depois, nota) {
+  const q = c => $(id).querySelector(`[data-campo="${c}"]`);
+  q('antesValor').textContent = antes;
+  q('depois').textContent = depois;
+  q('nota').textContent = nota;
+}
+
+function renderDesconto(nd, P, C, margemAtual) {
+  cabecalhoDesconto(nd, P, C, margemAtual);
+  $('abasDesconto').hidden = !nd;
+  if (!nd) { $('resumoDesconto').hidden = true; return null; }
+  const lucroAtual = composicao(P, C).lucro;
+  const opcoes = nd.niveis.concat([descontoPersonalizado(nd, P)]);
+  const escolhida = opcoes.find(o => o.k === desconto && o.preco != null) || null;
+  document.querySelectorAll('#abasDesconto .aba-desconto').forEach(b => {
+    const k = b.dataset.nivel, sub = b.querySelector('[data-campo="sub"]');
+    if (k === 'nenhum') { b.setAttribute('aria-pressed', String(!escolhida)); sub.textContent = 'margem ' + pct(margemAtual); return; }
+    const n = opcoes.find(o => o.k === k), disponivel = n.preco != null;
+    b.disabled = !disponivel;
+    b.setAttribute('aria-pressed', String(escolhida === n));
+    b.querySelector('.forca').dataset.n = disponivel ? n.forca : 0;
+    sub.textContent = disponivel ? `−${pctDesc(n.d)} · margem ${pct(composicao(n.preco, C).lucro / n.preco)}` : 'indisponível';
+  });
+  syncRegua(opcoes[opcoes.length - 1]);
+  // Sem desconto: só as abas aparecem; o resumo volta ao escolher um nível
+  $('resumoDesconto').hidden = !escolhida;
+  if (!escolhida) return null;
+  $('rdRegua').hidden = escolhida.k !== 'custom';
+  const k = composicao(escolhida.preco, C), m = k.lucro / escolhida.preco;
+  $('rdBadge').textContent = '−' + pctDesc(escolhida.d);
+  $('rdNome').textContent = 'Desconto ' + escolhida.nome;
+  $('rdOriginal').textContent = brl(P);
+  $('rdPreco').textContent = brl(escolhida.preco);
+  compara('rdLucro', brl(lucroAtual), brl(k.lucro), '−' + brl(lucroAtual - k.lucro) + ' por venda');
+  compara('rdMargem', pct(margemAtual), pct(m), '−' + fmtNum(Math.round((margemAtual - m) * 1000) / 10) + ' pontos percentuais');
+  return escolhida;
+}
+
 
 function calcular() {
   const semCusto = vazioCampo('custo');
@@ -492,35 +700,61 @@ function calcular() {
   $('usarMeta').dataset.p = precoMeta;
   $('usarMeta').hidden = precoMeta === P;
 
-  // Composição do preço
-  $('tituloBarra').textContent = 'Para onde vai cada venda de ' + brl(P);
+  // Desconto: níveis sugeridos e personalizado; o gráfico mostra o escolhido
+  const nd = niveisDesconto(P, C);
+  const sel = renderDesconto(nd, P, C, margem);
+
+  // Composição do preço, com o desconto escolhido quando houver
+  const Pd = sel ? sel.preco : P;
+  const cd = sel ? composicao(Pd, C) : { nuvem, pgPct, anuncio, imposto, fixos, total, lucro };
+  const okd = cd.lucro >= 0;
+  $('tituloBarra').textContent = 'Para onde vai cada venda de ' + brl(Pd);
+  $('pilulaDesconto').hidden = !sel;
+  if (sel) $('pilulaDesconto').textContent = '−' + pctDesc(sel.d) + ' · ' + sel.nome;
+  $('cabNota').textContent = sel ? `Preço original ${brl(P)} · desconto de ${brl(P - Pd)}` : 'Taxas, anúncio, imposto e custos fixos somam 54,92% do preço + R$ 0,20';
   const partes = [
     { nome: 'Produto e caixa', v: C + caixa, cor: 'var(--s1)', det: `Produto ${brl(C)} + caixa ${brl(caixa)}` },
-    { nome: 'Taxas de venda', v: nuvem + pgPct + PAGARME_FIXA, cor: 'var(--s2)', det: `Nuvemshop ${dec(nuvem)} · Pagar.me ${dec(pgPct)} + ${dec(PAGARME_FIXA)}` },
-    { nome: 'Anúncio', v: anuncio, cor: 'var(--s3)', det: '20% do valor de venda' },
-    { nome: 'Imposto', v: imposto, cor: 'var(--s4)', det: '8,64% do valor de venda' },
-    { nome: 'Custos fixos', v: fixos, cor: 'var(--s5)', det: '20% do valor de venda' }
+    { nome: 'Taxas de venda', v: cd.nuvem + cd.pgPct + PAGARME_FIXA, cor: 'var(--s2)', det: `Nuvemshop ${dec(cd.nuvem)} · Pagar.me ${dec(cd.pgPct)} + ${dec(PAGARME_FIXA)}` },
+    { nome: 'Anúncio', v: cd.anuncio, cor: 'var(--s3)', det: '20% do valor de venda' },
+    { nome: 'Imposto', v: cd.imposto, cor: 'var(--s4)', det: '8,64% do valor de venda' },
+    { nome: 'Custos fixos', v: cd.fixos, cor: 'var(--s5)', det: '20% do valor de venda' }
   ];
-  const segs = partes.concat(ok && lucro > 0 ? [{ nome: 'Lucro', v: lucro, cor: 'var(--s6)' }] : []).filter(s => s.v > 0);
+  const segs = partes.concat(okd && cd.lucro > 0 ? [{ nome: 'Lucro', v: cd.lucro, cor: 'var(--s6)' }] : [])
+    .concat(sel ? [{ nome: 'Desconto', v: P - Pd, cor: HACHURA_DESCONTO }] : []).filter(s => s.v > 0);
   $('barra').innerHTML = segs.map((s, i) => {
     const a = i === 0 ? '4px' : '0', b = i === segs.length - 1 ? '4px' : '0';
     return `<div title="${s.nome}: ${brl(s.v)}" style="flex:${s.v} 1 0px;background:${s.cor};border-radius:${a} ${b} ${b} ${a}"></div>`;
   }).join('');
-  $('excesso').hidden = ok;
-  if (!ok) $('excesso').style.left = (total > 0 ? Math.min(100, P / total * 100) : 0).toFixed(2) + '%';
-  const pctP = v => P > 0 ? pct(v / P) + ' do preço' : '—';
+  $('excesso').hidden = okd;
+  if (!okd) $('excesso').style.left = (cd.total > 0 ? Math.min(100, Pd / cd.total * 100) : 0).toFixed(2) + '%';
+
+  // Marca "cliente paga" sobre a barra, na divisa entre o que é pago e o desconto
+  const f = P > 0 ? Pd / P : 1, G = 2 * (segs.length - 1);
+  $('barraWrap').classList.toggle('com-desconto', !!sel);
+  $('marcaDesconto').hidden = !sel;
+  $('fimBarra').hidden = !sel || f > 0.93;
+  if (sel) {
+    $('marcaDesconto').style.left = P - Pd > 0 ? `calc((100% - ${G}px) * ${f.toFixed(4)} + ${G - 1}px)` : 'calc(100% - 1px)';
+    $('marcaDesconto').classList.toggle('direita', f > 0.8);
+    $('mdRot').textContent = 'Cliente paga ' + brl(Pd);
+    $('fimBarra').textContent = brl(P);
+  }
+
+  const pctP = v => Pd > 0 ? pct(v / Pd) + (sel ? ' do preço pago' : ' do preço') : '—';
   const hachura = 'repeating-linear-gradient(135deg, var(--tinta) 0 2px, transparent 2px 5px)';
-  $('legenda').innerHTML = partes.map(s => ({ ...s, pctTxt: pctP(s.v), valor: brl(s.v) }))
-    .concat([ok ? { nome: 'Lucro', cor: 'var(--s6)', valor: brl(lucro), pctTxt: pctP(lucro), det: 'O que sobra para você em cada venda' }
-                : { nome: 'Prejuízo', cor: hachura, valor: brl(lucro), pctTxt: pctP(lucro), det: 'Os custos passam do valor de venda' }])
-    .map(s => `<div><span class="nome"><i style="background:${s.cor}"></i>${s.nome}</span><span class="valor">${s.valor}</span><span class="pct">${s.pctTxt}</span><span class="det">${s.det}</span></div>`).join('');
+  const itens = partes.map(s => ({ ...s, pctTxt: pctP(s.v), valor: brl(s.v) }))
+    .concat([okd ? { nome: 'Lucro', cor: 'var(--s6)', valor: brl(cd.lucro), pctTxt: pctP(cd.lucro), det: 'O que sobra para você em cada venda' }
+                 : { nome: 'Prejuízo', cor: hachura, valor: brl(cd.lucro), pctTxt: pctP(cd.lucro), det: 'Os custos passam do valor de venda' }]);
+  if (sel) itens.push({ nome: 'Desconto', cor: HACHURA_DESCONTO, valor: brl(P - Pd), pctTxt: pctDesc(sel.d) + ' do preço original', det: `O cliente paga ${brl(Pd)} em vez de ${brl(P)}` });
+  $('legenda').classList.toggle('com-desconto', !!sel);
+  $('legenda').innerHTML = itens.map(s => `<div><span class="nome"><i style="background:${s.cor}"></i>${s.nome}</span><span class="valor">${s.valor}</span><span class="pct">${s.pctTxt}</span><span class="det">${s.det}</span></div>`).join('');
 
   document.querySelectorAll('#caixas button').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.v === caixa)));
   salvar();
 }
 
 function salvar() {
-  try { localStorage.setItem('calc-fpm', JSON.stringify({ custo: $('custo').value, venda: $('venda').value, meta: $('meta').value, metaManual, vendaManual, caixa })); } catch (e) {}
+  try { localStorage.setItem('calc-fpm', JSON.stringify({ custo: $('custo').value, venda: $('venda').value, meta: $('meta').value, metaManual, vendaManual, caixa, desconto, descCustom })); } catch (e) {}
 }
 
 ['custo', 'venda'].forEach(id => {
@@ -541,7 +775,17 @@ $('exemplo').addEventListener('click', e => {
 });
 $('sugExato').addEventListener('click', () => { vendaManual = false; calcular(); });
 $('sugRedondo').addEventListener('click', e => { vendaManual = true; $('venda').value = dec(+e.currentTarget.dataset.p); calcular(); });
-$('limpar').addEventListener('click', () => { vendaManual = false; metaManual = false; $('custo').value = ''; $('venda').value = ''; calcular(); $('custo').focus(); });
+$('limpar').addEventListener('click', () => { desconto = null; vendaManual = false; metaManual = false; $('custo').value = ''; $('venda').value = ''; calcular(); $('custo').focus(); });
+$('descCustomRange').addEventListener('input', e => { descCustom = +e.target.value; desconto = 'custom'; $('descCustomInput').value = fmtNum(descCustom); calcular(); });
+$('descCustomInput').addEventListener('input', e => { if (!e.target.value.trim()) return; descCustom = num(e.target.value); desconto = 'custom'; calcular(); });
+$('descCustomInput').addEventListener('blur', calcular);
+['descCustomRange', 'descCustomInput'].forEach(id => $(id).addEventListener('pointerdown', () => { if (desconto !== 'custom') { desconto = 'custom'; calcular(); } }));
+$('abasDesconto').addEventListener('click', e => {
+  const b = e.target.closest('.aba-desconto');
+  if (!b || b.disabled) return;
+  desconto = b.dataset.nivel === 'nenhum' ? null : b.dataset.nivel;
+  calcular();
+});
 calcular();
 </script>
 </body>
