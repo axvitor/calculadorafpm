@@ -132,7 +132,11 @@
   .legenda .nome i { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
   .legenda .valor { font-family: var(--display); font-size: 24px; font-weight: 700; }
   .legenda .pct { font-size: 13px; font-weight: 600; color: var(--tinta2); font-variant-numeric: tabular-nums; }
-  .legenda .det { font-size: 12px; line-height: 1.4; color: var(--tinta3); }
+  .legenda > div { position: relative; }
+  .legenda .nome .info { position: static; margin-left: -4px; }
+  .legenda .info-botao { width: 22px; height: 22px; }
+  .legenda .info-balao { left: 0; right: auto; top: 26px; transform: none; width: 240px; max-width: 240px; }
+  .legenda > div.dir .info-balao { left: auto; right: 0; }
 
   .venda input::placeholder { color: rgba(255,255,255,.4); }
   .campo input::placeholder { color: #A0A09F; }
@@ -753,11 +757,19 @@ function calcular() {
                  : { nome: 'Prejuízo', cor: hachura, valor: brl(cd.lucro), pctTxt: pctP(cd.lucro), det: 'Os custos passam do valor de venda' }]);
   if (sel) itens.push({ nome: 'Desconto', cor: HACHURA_DESCONTO, valor: brl(P - Pd), pctTxt: pctDesc(sel.d) + ' do preço original', det: `O cliente paga ${brl(Pd)} em vez de ${brl(P)}` });
   $('legenda').classList.toggle('com-desconto', !!sel);
-  $('legenda').innerHTML = itens.map(s => `<div><span class="nome"><i style="background:${s.cor}"></i>${s.nome}</span><span class="valor">${s.valor}</span><span class="pct">${s.pctTxt}</span><span class="det">${s.det}</span></div>`).join('');
+  $('legenda').innerHTML = itens.map((s, i) => `<div><span class="nome"><i style="background:${s.cor}"></i>${s.nome}<span class="info"><button type="button" class="info-botao" aria-label="Sobre ${s.nome}" aria-describedby="leg-${i}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 11v5"/><path d="M12 7.5h.01"/></svg></button><span class="info-balao" id="leg-${i}" role="tooltip">${s.det}</span></span></span><span class="valor">${s.valor}</span><span class="pct">${s.pctTxt}</span></div>`).join('');
+  ajustarLegenda();
 
   document.querySelectorAll('#caixas button').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.v === caixa)));
   salvar();
 }
+
+// Balões da legenda: os itens perto da borda direita abrem o balão para a esquerda
+function ajustarLegenda() {
+  const limite = document.documentElement.clientWidth - 16;
+  document.querySelectorAll('#legenda > div').forEach(d => d.classList.toggle('dir', d.getBoundingClientRect().left + 240 > limite));
+}
+addEventListener('resize', ajustarLegenda);
 
 function salvar() {
   try { localStorage.setItem('calc-fpm', JSON.stringify({ custo: $('custo').value, venda: $('venda').value, meta: $('meta').value, metaManual, vendaManual, caixa, desconto, descCustom })); } catch (e) {}
