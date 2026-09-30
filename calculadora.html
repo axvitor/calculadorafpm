@@ -339,7 +339,6 @@
         <label for="venda" class="rot-termo">Valor de venda</label>
         <div class="venda"><span>R$</span><input id="venda" inputmode="numeric" autocomplete="off" placeholder="0,00"></div>
         <div class="sugestao" id="sugestao" hidden>
-          <span id="sugestaoRot">Sugerido para a sua margem ideal</span>
           <div class="sugestao-botoes">
             <button type="button" id="sugExato"></button>
             <button type="button" id="sugRedondo"></button>
@@ -350,7 +349,6 @@
       <div class="termo">
         <span class="rot-termo">Custos e taxas</span>
         <span class="valor-termo" id="custosTotal"></span>
-        <span class="detalhe-termo" id="custosDet"></span>
       </div>
       <div class="operador" aria-hidden="true">=</div>
       <div class="termo termo-lucro" id="termoLucro" aria-live="polite">
@@ -616,7 +614,6 @@ function calcular() {
   const temSugestao = !semCusto && precoMeta > 0;
   $('sugestao').hidden = !temSugestao;
   if (temSugestao) {
-    $('sugestaoRot').textContent = vendaManual ? `Sugerido para ${metaTxt} de margem ideal` : `Preenchido com o sugerido para ${metaTxt} de margem ideal · edite se quiser`;
     $('sugExato').innerHTML = `${brl(precoMeta)} <small>exato</small>`;
     $('sugExato').dataset.p = precoMeta;
     $('sugExato').setAttribute('aria-pressed', String(P === precoMeta));
@@ -633,7 +630,6 @@ function calcular() {
     $('margem').textContent = 'margem —';
     $('termoLucro').classList.remove('perda');
     $('custosTotal').textContent = 'R$ —';
-    $('custosDet').textContent = 'Aparece quando você informar o custo';
     $('zonaPerda').style.width = '0px';
     $('zonaLucro').hidden = true;
     $('marcas').innerHTML = '';
@@ -663,7 +659,6 @@ function calcular() {
   $('margem').textContent = P > 0 ? pct(margem) + ' de margem' : '—';
   $('termoLucro').classList.toggle('perda', !ok);
   $('custosTotal').textContent = brl(total);
-  $('custosDet').innerHTML = `Produto e caixa ${brl(C + caixa)}<br>Taxas, anúncio, imposto e custos fixos ${brl(total - C - caixa)}`;
 
   // Régua
   const Pr = P / 100;
