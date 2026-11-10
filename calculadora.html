@@ -57,6 +57,9 @@
   .campo span { font-size: 15px; font-weight: 600; color: #5B6B63; }
   .campo input { flex: 1; min-width: 0; width: 100%; border: 0; padding: 0; background: transparent; font: 700 19px 'Nunito', system-ui, sans-serif; color: #17392B; outline: none; }
   .campo.pequeno { width: 92px; padding: 0 12px; }
+  .campo.produto { position: relative; width: 260px; padding: 0; }
+  .campo.produto select { width: 100%; height: 100%; padding: 0 42px 0 14px; border: 0; border-radius: 16px; background: transparent; font: 700 16px 'Nunito', system-ui, sans-serif; color: #17392B; cursor: pointer; outline: none; -webkit-appearance: none; appearance: none; text-overflow: ellipsis; }
+  .campo.produto svg { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: #5B6B63; pointer-events: none; }
   .segmentos { display: flex; gap: 4px; padding: 4px; border-radius: 18px; background: rgba(255,255,255,.14); }
   .segmentos button { height: 44px; min-width: 78px; padding: 0 10px; border: 0; border-radius: 14px; background: transparent; color: #FFFFFF; font: 700 15px 'Nunito', system-ui, sans-serif; cursor: pointer; }
   .segmentos button[aria-pressed="true"] { background: #FFFFFF; color: #0F3B2C; }
@@ -344,6 +347,13 @@
       </div>
       <div class="entradas">
         <div class="grupo">
+          <label for="produto">Produto</label>
+          <div class="campo produto">
+            <select id="produto"><option value="">Outro (digitar o custo)</option></select>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+          </div>
+        </div>
+        <div class="grupo">
           <label for="custo">Custo de produção</label>
           <div class="campo"><span>R$</span><input id="custo" inputmode="numeric" autocomplete="off" placeholder="0,00"></div>
         </div>
@@ -416,7 +426,7 @@
         <h2 id="vazioTitulo">Comece pelo custo do produto</h2>
         <p id="vazioTexto">Preencha os campos no topo para ver quanto sobra de cada venda depois das taxas da Nuvemshop e da Pagar.me, do anúncio, do imposto e dos custos fixos.</p>
         <ol class="passos">
-          <li><span><b>Custo de produção</b> e o tamanho da <b>caixa</b></span></li>
+          <li><span>O <b>produto</b> (ou o <b>custo de produção</b>) e o tamanho da <b>caixa</b></span></li>
           <li><span>A <b>margem ideal</b>: por padrão, lucro igual ao custo de produção</span></li>
           <li><span>O <b>valor de venda</b>, ou use o preço recomendado</span></li>
           <li><span>Simule um <b>desconto</b>: Leve, Regular, Pesado, Extremo ou personalizado</span></li>
@@ -477,7 +487,7 @@
 
     <div class="cab">
       <div class="cab-titulo"><h2 id="tituloBarra"></h2><span class="pilula-desconto" id="pilulaDesconto" hidden></span></div>
-      <span id="cabNota">Taxas, anúncio, imposto e custos fixos somam 54,92% do preço + R$ 0,20</span>
+      <span id="cabNota">Taxas, anúncio, imposto e custos fixos somam 53,92% do preço + R$ 0,40</span>
     </div>
     <div class="barra-wrap" id="barraWrap">
       <span class="marca-desconto" id="marcaDesconto" hidden><span class="md-rot" id="mdRot"></span></span>
@@ -492,9 +502,31 @@
 
 <script>
 // Percentuais sobre o valor de venda
-const TAXAS = { nuvemshop: 0.02, pagarme: 0.0428, anuncio: 0.20, imposto: 0.0864, fixos: 0.20 };
-const PAGARME_FIXA = 20;          // centavos
-const SOBRA = 1 - 0.5492;         // parte do preço que sobra após os percentuais (45,08%)
+const TAXAS = { nuvemshop: 0.01, pagarme: 0.0428, anuncio: 0.20, imposto: 0.0864, fixos: 0.20 };
+// Valores fixos por venda, em centavos
+const PAGARME_PROCESSAMENTO = 20; // taxa de processamento por transação aprovada
+const PAGARME_ANTIFRAUDE = 20;    // antifraude por transação de cartão de crédito
+const PAGARME_FIXA = PAGARME_PROCESSAMENTO + PAGARME_ANTIFRAUDE;
+const EMBALAGEM = 400;            // brindes e embalagem além da caixa (fita, etiqueta, papel, adesivo, cartão)
+const PCT_TOTAL = Object.values(TAXAS).reduce((a, b) => a + b, 0);   // 53,92%
+const SOBRA = 1 - PCT_TOTAL;      // parte do preço que sobra após os percentuais (46,08%)
+// Produtos com custo de produção conhecido (em centavos) e a caixa que costumam usar.
+// Para incluir ou mudar um produto, edite esta lista.
+const PRODUTOS = [
+  { nome: 'Planner 2027', custo: 8085, caixa: 300 },
+  { nome: 'Moleskine', custo: 3725, caixa: 300 },
+  { nome: 'Bloco G', custo: 680, caixa: 300 },
+  { nome: 'Bloco P', custo: 528, caixa: 300 },
+  { nome: 'Caderno capa dura (R$ 129,90)', custo: 3600, caixa: 900 },
+  { nome: 'Caderno capa dura (R$ 142)', custo: 3800, caixa: 900 },
+  { nome: 'Caderno flexível A5', custo: 2400, caixa: 900 },
+  { nome: 'Caderno flexível A6', custo: 2200, caixa: 900 },
+  { nome: 'Adesivos', custo: 300, caixa: 150 },
+  { nome: 'Álbum de fotos', custo: 5000, caixa: 900 },
+  { nome: 'Fichário', custo: 4200, caixa: 900 },
+  { nome: 'Livro de receitas', custo: 4200, caixa: 900 }
+];
+const NOTA_PERCENTUAIS =`Taxas, anúncio, imposto e custos fixos somam ${(PCT_TOTAL * 100).toLocaleString('pt-BR', { maximumFractionDigits: 2 })}% do preço + R$ ${(PAGARME_FIXA / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
 
 const $ = id => document.getElementById(id);
 const num = s => { let t = String(s || '').replace(/[^\d,.]/g, ''); if (t.includes(',')) t = t.replace(/\./g, '').replace(',', '.'); const n = parseFloat(t); return isFinite(n) ? n : 0; };
@@ -514,6 +546,15 @@ try {
   const s = JSON.parse(localStorage.getItem('calc-fpm') || 'null');
   if (s) { $('custo').value = s.custo ?? $('custo').value; $('venda').value = s.venda ?? $('venda').value; vendaManual = !!s.vendaManual; if (s.metaManual) { metaManual = true; $('meta').value = s.meta ?? ''; } caixa = s.caixa ?? caixa; desconto = s.desconto ?? null; if (typeof s.descCustom === 'number') descCustom = s.descCustom; }
 } catch (e) {}
+
+// Seletor de produto: escolher um produto preenche o custo de produção e a caixa
+let produto = '';
+PRODUTOS.forEach((p, i) => $('produto').add(new Option(`${p.nome} · R$ ${dec(p.custo)}`, String(i))));
+try {
+  const s = JSON.parse(localStorage.getItem('calc-fpm') || 'null');
+  if (s && typeof s.produto === 'string' && PRODUTOS[s.produto]) produto = s.produto;
+} catch (e) {}
+$('produto').value = produto;
 
 const vazioCampo = id => !$(id).value.trim();
 
@@ -550,13 +591,13 @@ const pctDesc = d => fmtNum(Math.round(d * 1000) / 10) + '%';
 // Custos e lucro para qualquer preço (em centavos)
 function composicao(Pc, C) {
   const nuvem = r(Pc * TAXAS.nuvemshop), pgPct = r(Pc * TAXAS.pagarme), anuncio = r(Pc * TAXAS.anuncio), imposto = r(Pc * TAXAS.imposto), fixos = r(Pc * TAXAS.fixos);
-  const total = C + caixa + nuvem + pgPct + PAGARME_FIXA + anuncio + imposto + fixos;
+  const total = C + caixa + EMBALAGEM + nuvem + pgPct + PAGARME_FIXA + anuncio + imposto + fixos;
   return { nuvem, pgPct, anuncio, imposto, fixos, total, lucro: Pc - total };
 }
 
 // Extremo leva a margem a 0%. Pesado, Regular e Leve usam 75%, 50% e 25% desse desconto máximo.
 function niveisDesconto(P, C) {
-  let precoMin = Math.ceil((C + caixa + PAGARME_FIXA) / SOBRA - 1e-7);
+  let precoMin = Math.ceil((C + caixa + EMBALAGEM + PAGARME_FIXA) / SOBRA - 1e-7);
   while (composicao(precoMin, C).lucro < 0) precoMin++;          // arredondamento das taxas
   if (P <= precoMin) return null;                                 // sem margem para desconto
   const dmax = (P - precoMin) / P;
@@ -586,7 +627,7 @@ function syncRegua(nC) {
 }
 
 function cabecalhoDesconto(nd, P, C, margemAtual) {
-  $('descontoTexto').textContent = `Sugestões calculadas a partir do custo de ${brl(C + caixa)} (produto e caixa) e do preço atual de ${brl(P)}. No Extremo a margem chega a 0%: a venda não dá lucro nem prejuízo.`;
+  $('descontoTexto').textContent = `Sugestões calculadas a partir do custo de ${brl(C + caixa + EMBALAGEM)} (produto, caixa, brindes e embalagem) e do preço atual de ${brl(P)}. No Extremo a margem chega a 0%: a venda não dá lucro nem prejuízo.`;
   $('descontoAviso').hidden = !!nd;
 }
 
@@ -636,12 +677,14 @@ function renderDesconto(nd, P, C, margemAtual) {
 function calcular() {
   const semCusto = vazioCampo('custo');
   const C = Math.round(num($('custo').value) * 100);
-  const base = C + caixa + PAGARME_FIXA;
+  // Custo digitado diferente do produto escolhido: o seletor volta para "Outro"
+  if (produto && (semCusto || C !== PRODUTOS[produto].custo)) { produto = ''; $('produto').value = ''; }
+  const base = C + caixa + EMBALAGEM + PAGARME_FIXA;
   const precoPara = m => Math.ceil(base / (SOBRA - m) - 1e-7);
   const minimo = precoPara(0);
   let metaPct, precoMeta;
   if (metaManual) {
-    metaPct = Math.min(num($('meta').value), 45) / 100;       // acima de 45,08% é impossível
+    metaPct = Math.min(num($('meta').value), 45) / 100;       // acima de 46,08% é impossível
     precoMeta = precoPara(metaPct);
   } else {
     precoMeta = Math.ceil((base + C) / SOBRA - 1e-7);         // preço em que o lucro ≈ custo de produção
@@ -664,7 +707,7 @@ function calcular() {
   const semVenda = vazioCampo('venda'), vazio = semCusto || semVenda;
   const P = Math.round(num($('venda').value) * 100);
   const nuvem = r(P * TAXAS.nuvemshop), pgPct = r(P * TAXAS.pagarme), anuncio = r(P * TAXAS.anuncio), imposto = r(P * TAXAS.imposto), fixos = r(P * TAXAS.fixos);
-  const total = C + caixa + nuvem + pgPct + PAGARME_FIXA + anuncio + imposto + fixos;
+  const total = C + caixa + EMBALAGEM + nuvem + pgPct + PAGARME_FIXA + anuncio + imposto + fixos;
   const lucro = P - total, ok = lucro >= 0, margem = P > 0 ? lucro / P : 0;
 
   $('vazio').hidden = !vazio;
@@ -757,13 +800,13 @@ function calcular() {
   $('pilulaDesconto').hidden = !sel;
   if (sel) { const t = '−' + pctDesc(sel.d) + ' · ' + sel.nome; if ($('pilulaDesconto').dataset.nivel !== sel.k) { $('pilulaDesconto').dataset.nivel = sel.k; reanimar($('pilulaDesconto'), 'pop'); } $('pilulaDesconto').textContent = t; }
   else $('pilulaDesconto').dataset.nivel = '';
-  $('cabNota').textContent = sel ? `Preço original ${brl(P)} · desconto de ${brl(P - Pd)}` : 'Taxas, anúncio, imposto e custos fixos somam 54,92% do preço + R$ 0,20';
+  $('cabNota').textContent = sel ? `Preço original ${brl(P)} · desconto de ${brl(P - Pd)}` : NOTA_PERCENTUAIS;
   const partes = [
-    { nome: 'Produto e caixa', v: C + caixa, cor: 'var(--s1)', det: `Produto ${brl(C)} + caixa ${brl(caixa)}` },
-    { nome: 'Taxas de venda', v: cd.nuvem + cd.pgPct + PAGARME_FIXA, cor: 'var(--s2)', det: `Nuvemshop ${dec(cd.nuvem)} · Pagar.me ${dec(cd.pgPct)} + ${dec(PAGARME_FIXA)}` },
-    { nome: 'Anúncio', v: cd.anuncio, cor: 'var(--s3)', det: '20% do valor de venda' },
-    { nome: 'Imposto', v: cd.imposto, cor: 'var(--s4)', det: '8,64% do valor de venda' },
-    { nome: 'Custos fixos', v: cd.fixos, cor: 'var(--s5)', det: '20% do valor de venda' }
+    { nome: 'Produto e embalagem', v: C + caixa + EMBALAGEM, cor: 'var(--s1)', det: `Produto ${brl(C)} + caixa ${brl(caixa)} + brindes e embalagem ${brl(EMBALAGEM)}` },
+    { nome: 'Taxas de venda', v: cd.nuvem + cd.pgPct + PAGARME_FIXA, cor: 'var(--s2)', det: `Nuvemshop ${pct(TAXAS.nuvemshop, 0)}: ${dec(cd.nuvem)} · Pagar.me ${pct(TAXAS.pagarme, 2)}: ${dec(cd.pgPct)} + ${dec(PAGARME_PROCESSAMENTO)} de processamento + ${dec(PAGARME_ANTIFRAUDE)} de antifraude` },
+    { nome: 'Anúncio', v: cd.anuncio, cor: 'var(--s3)', det: pct(TAXAS.anuncio, 0) + ' do valor de venda' },
+    { nome: 'Imposto', v: cd.imposto, cor: 'var(--s4)', det: pct(TAXAS.imposto, 2) + ' do valor de venda' },
+    { nome: 'Custos fixos', v: cd.fixos, cor: 'var(--s5)', det: pct(TAXAS.fixos, 0) + ' do valor de venda' }
   ];
   const segs = partes.concat(okd && cd.lucro > 0 ? [{ nome: 'Lucro', v: cd.lucro, cor: 'var(--s6)' }] : [])
     .concat(sel ? [{ nome: 'Desconto', v: P - Pd, cor: HACHURA_DESCONTO }] : []).filter(s => s.v > 0);
@@ -830,12 +873,19 @@ function ajustarLegenda() {
 addEventListener('resize', ajustarLegenda);
 
 function salvar() {
-  try { localStorage.setItem('calc-fpm', JSON.stringify({ custo: $('custo').value, venda: $('venda').value, meta: $('meta').value, metaManual, vendaManual, caixa, desconto, descCustom })); } catch (e) {}
+  try { localStorage.setItem('calc-fpm', JSON.stringify({ produto, custo: $('custo').value, venda: $('venda').value, meta: $('meta').value, metaManual, vendaManual, caixa, desconto, descCustom })); } catch (e) {}
 }
 
 ['custo', 'venda'].forEach(id => {
   $(id).addEventListener('input', () => { mascaraPreco($(id)); if (id === 'venda') vendaManual = !vazioCampo('venda'); calcular(); });
   $(id).addEventListener('blur', () => { if (vazioCampo(id)) { calcular(); return; } $(id).value = dec(Math.round(num($(id).value) * 100)); calcular(); });
+});
+$('produto').addEventListener('change', e => {
+  produto = e.target.value;
+  const p = PRODUTOS[produto];
+  if (p) { $('custo').value = dec(p.custo); caixa = p.caixa; vendaManual = false; }
+  calcular();
+  if (!p) $('custo').focus();
 });
 $('meta').addEventListener('input', () => { metaManual = $('meta').value.trim() !== ''; calcular(); });
 $('metaAuto').addEventListener('click', () => { metaManual = false; calcular(); });
@@ -850,7 +900,7 @@ $('exemplo').addEventListener('click', e => {
 });
 $('sugExato').addEventListener('click', () => { vendaManual = false; calcular(); });
 $('sugRedondo').addEventListener('click', e => { vendaManual = true; $('venda').value = dec(+e.currentTarget.dataset.p); calcular(); });
-$('limpar').addEventListener('click', () => { desconto = null; vendaManual = false; metaManual = false; $('custo').value = ''; $('venda').value = ''; calcular(); $('custo').focus(); });
+$('limpar').addEventListener('click', () => { desconto = null; vendaManual = false; metaManual = false; produto = ''; $('produto').value = ''; $('custo').value = ''; $('venda').value = ''; calcular(); $('custo').focus(); });
 $('descCustomRange').addEventListener('input', e => { descCustom = +e.target.value; desconto = 'custom'; $('descCustomInput').value = fmtNum(descCustom); calcular(); });
 $('descCustomInput').addEventListener('input', e => { if (!e.target.value.trim()) return; descCustom = num(e.target.value); desconto = 'custom'; calcular(); });
 $('descCustomInput').addEventListener('blur', calcular);
