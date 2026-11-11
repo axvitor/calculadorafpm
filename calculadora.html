@@ -262,20 +262,14 @@
   .forca[data-n="1"] i:nth-child(-n+1), .forca[data-n="2"] i:nth-child(-n+2), .forca[data-n="3"] i:nth-child(-n+3), .forca[data-n="4"] i { background: #D96B7E; }
   .radio { width: 18px; height: 18px; flex-shrink: 0; border-radius: 50%; border: 2px solid var(--anel); display: inline-grid; place-items: center; }
   .radio::after { content: ""; width: 8px; height: 8px; border-radius: 50%; background: transparent; }
-  .regua-desconto { -webkit-appearance: none; appearance: none; width: 100%; height: 28px; margin: 0; background: transparent; cursor: pointer; --p: 0%; }
-  .regua-desconto::-webkit-slider-runnable-track { height: 8px; border-radius: 4px; background: linear-gradient(to right, var(--rosa) 0 var(--p), var(--trilho-desconto) var(--p) 100%); }
-  .regua-desconto::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; margin-top: -7px; border: 0; border-radius: 50%; background: #FFFFFF; box-shadow: 0 0 0 3px var(--rosa), 0 3px 8px rgba(23,57,43,.2); }
-  .regua-desconto::-moz-range-track { height: 8px; border-radius: 4px; background: var(--trilho-desconto); }
-  .regua-desconto::-moz-range-progress { height: 8px; border-radius: 4px; background: var(--rosa); }
-  .regua-desconto::-moz-range-thumb { width: 22px; height: 22px; border: 0; border-radius: 50%; background: #FFFFFF; box-shadow: 0 0 0 3px var(--rosa), 0 3px 8px rgba(23,57,43,.2); }
-  .regua-desconto:focus { outline: none; }
-  .regua-desconto:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px var(--foco), 0 3px 8px rgba(23,57,43,.2); }
-  .regua-desconto:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 3px var(--foco), 0 3px 8px rgba(23,57,43,.2); }
-  .cd-limites { display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; color: var(--tinta2); }
+  .rd-dica { font-size: 12px; font-weight: 700; color: var(--tinta2); }
+  .rd-dica.perda { color: var(--perda-texto); }
+  .rd-linha b.perda { color: var(--perda-texto); }
   /* Gráfico com o desconto escolhido */
   .cab-titulo { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
   .cab .pilula-desconto { display: inline-flex; align-items: center; height: 28px; padding: 0 12px; border-radius: 999px; background: var(--rosa-suave); color: #17392B; font-size: 13px; font-weight: 800; white-space: nowrap; }
   .barra-wrap.com-desconto { padding-top: 30px; }
+  .barra-wrap.com-desconto .excesso { top: 24px; }
   .marca-desconto { position: absolute; top: 20px; bottom: -6px; width: 2px; margin-left: -1px; border-radius: 1px; background: var(--tinta); }
   .md-rot { position: absolute; bottom: calc(100% + 4px); left: 50%; transform: translateX(-50%); font-size: 12px; font-weight: 800; color: var(--tinta); white-space: nowrap; }
   .marca-desconto.direita .md-rot { left: auto; right: 6px; transform: none; }
@@ -467,9 +461,8 @@
           <span class="rd-de" id="rdDe">de <s id="rdOriginal"></s> por</span>
           <span class="rd-valor" id="rdPreco"></span>
           <div class="rd-regua" id="rdRegua" hidden>
-            <div class="rd-regua-topo"><label for="descCustomInput">Arraste a régua ou digite o desconto</label><span class="rd-input">−<input id="descCustomInput" inputmode="decimal" autocomplete="off" maxlength="4">%</span></div>
-            <input type="range" class="regua-desconto" id="descCustomRange" min="0" max="46" step="1" aria-label="Arraste para escolher o desconto">
-            <div class="cd-limites"><span>0%</span><span id="descCustomMax"></span></div>
+            <div class="rd-regua-topo"><label for="descCustomInput">Digite o desconto</label><span class="rd-input">−<input id="descCustomInput" inputmode="decimal" autocomplete="off" maxlength="4">%</span></div>
+            <span class="rd-dica" id="descCustomDica" aria-live="polite"></span>
           </div>
         </div>
         <div class="rd-comparacao" id="rdLucro">
@@ -540,7 +533,7 @@ const ICON_ALERTA = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" 
 let caixa = 300;
 let metaManual = false;
 let desconto = null;      // nível de desconto escolhido: leve, regular, pesado, extremo, custom
-let descCustom = 10;      // porcentagem da régua do Personalizado
+let descCustom = 10;      // porcentagem digitada no Personalizado
 let vendaManual = false;  // false = valor de venda preenchido com o preço sugerido exato   // false = margem automática (lucro igual ao custo de produção)
 try {
   const s = JSON.parse(localStorage.getItem('calc-fpm') || 'null');
@@ -609,21 +602,21 @@ function niveisDesconto(P, C) {
   return { precoMin, dmax, niveis };
 }
 
-// Desconto escolhido na régua, sem passar do Extremo
+// Desconto digitado: pode passar do Extremo (venda com prejuízo, ex.: promoção)
 function descontoPersonalizado(nd, P) {
   const maxPct = Math.floor(nd.dmax * 1000) / 10;
-  const dPct = Math.min(Math.max(descCustom, 0), maxPct);
-  const forca = maxPct > 0 ? Math.ceil(dPct / maxPct * 4 - 1e-9) : 0;
-  return { k: 'custom', nome: 'Personalizado', forca, d: dPct / 100, maxPct, preco: Math.max(nd.precoMin, r(P * (1 - dPct / 100))) };
+  const dPct = Math.min(Math.max(Math.round(descCustom * 10) / 10, 0), 99);
+  const forca = maxPct > 0 ? Math.min(4, Math.ceil(dPct / maxPct * 4 - 1e-9)) : 4;
+  return { k: 'custom', nome: 'Personalizado', forca, d: dPct / 100, maxPct, preco: r(P * (1 - dPct / 100)) };
 }
 
 function syncRegua(nC) {
-  const rng = $('descCustomRange'), M = Math.max(1, Math.floor(nC.maxPct));
-  rng.max = M;
-  if (document.activeElement !== rng) rng.value = Math.min(M, Math.round(nC.d * 100));
-  rng.style.setProperty('--p', (Math.min(M, +rng.value) / M * 100).toFixed(2) + '%');
   if (document.activeElement !== $('descCustomInput')) $('descCustomInput').value = fmtNum(Math.round(nC.d * 1000) / 10);
-  $('descCustomMax').textContent = 'máx. ' + fmtNum(nC.maxPct) + '%';
+  const passou = nC.d * 100 > nC.maxPct + 1e-9;
+  $('descCustomDica').textContent = passou
+    ? `Acima de ${fmtNum(nC.maxPct)}% a venda dá prejuízo`
+    : `Até ${fmtNum(nC.maxPct)}% sem prejuízo`;
+  $('descCustomDica').classList.toggle('perda', passou);
 }
 
 function cabecalhoDesconto(nd, P, C, margemAtual) {
@@ -669,6 +662,8 @@ function renderDesconto(nd, P, C, margemAtual) {
   $('rdOriginal').textContent = brl(P);
   animarNumero($('rdPreco'), escolhida.preco, brl);
   compara('rdLucro', brl(lucroAtual), k.lucro, brl, '−' + brl(lucroAtual - k.lucro) + ' por venda');
+  $('rdLucro').querySelector('[data-campo="depois"]').classList.toggle('perda', k.lucro < 0);
+  $('rdMargem').querySelector('[data-campo="depois"]').classList.toggle('perda', k.lucro < 0);
   compara('rdMargem', pct(margemAtual), Math.round(m * 1000), v => pct(v / 1000), '−' + fmtNum(Math.round((margemAtual - m) * 1000) / 10) + ' pontos percentuais');
   return escolhida;
 }
@@ -823,11 +818,16 @@ function calcular() {
     void barra.offsetWidth;
   }
   [...barra.children].forEach((el, i) => { el.style.flexGrow = segs[i].v; el.title = `${segs[i].nome}: ${brl(segs[i].v)}`; });
+  // Posições sobre a barra, proporcionais à soma das fatias (custos + lucro + desconto)
+  const S = segs.reduce((t, s) => t + s.v, 0);
   $('excesso').hidden = okd;
-  if (!okd) $('excesso').style.left = (cd.total > 0 ? Math.min(100, Pd / cd.total * 100) : 0).toFixed(2) + '%';
+  if (!okd) {
+    $('excesso').style.left = (S > 0 ? Math.min(100, Pd / S * 100) : 0).toFixed(2) + '%';
+    $('excesso').style.right = (S > 0 ? Math.max(0, (S - cd.total) / S * 100) : 0).toFixed(2) + '%';
+  }
 
-  // Marca "cliente paga" sobre a barra, na divisa entre o que é pago e o desconto
-  const f = P > 0 ? Pd / P : 1, G = 2 * (segs.length - 1);
+  // Marca "cliente paga" sobre a barra, na divisa entre o que é pago e o resto
+  const f = S > 0 ? Math.max(0, Pd) / S : 1, G = 2 * (segs.length - 1);
   $('barraWrap').classList.toggle('com-desconto', !!sel);
   $('marcaDesconto').hidden = !sel;
   $('fimBarra').hidden = !sel || f > 0.93;
@@ -901,10 +901,9 @@ $('exemplo').addEventListener('click', e => {
 $('sugExato').addEventListener('click', () => { vendaManual = false; calcular(); });
 $('sugRedondo').addEventListener('click', e => { vendaManual = true; $('venda').value = dec(+e.currentTarget.dataset.p); calcular(); });
 $('limpar').addEventListener('click', () => { desconto = null; vendaManual = false; metaManual = false; produto = ''; $('produto').value = ''; $('custo').value = ''; $('venda').value = ''; calcular(); $('custo').focus(); });
-$('descCustomRange').addEventListener('input', e => { descCustom = +e.target.value; desconto = 'custom'; $('descCustomInput').value = fmtNum(descCustom); calcular(); });
 $('descCustomInput').addEventListener('input', e => { if (!e.target.value.trim()) return; descCustom = num(e.target.value); desconto = 'custom'; calcular(); });
 $('descCustomInput').addEventListener('blur', calcular);
-['descCustomRange', 'descCustomInput'].forEach(id => $(id).addEventListener('pointerdown', () => { if (desconto !== 'custom') { desconto = 'custom'; calcular(); } }));
+$('descCustomInput').addEventListener('pointerdown', () => { if (desconto !== 'custom') { desconto = 'custom'; calcular(); } });
 $('abasDesconto').addEventListener('click', e => {
   const b = e.target.closest('.aba-desconto');
   if (!b || b.disabled) return;
